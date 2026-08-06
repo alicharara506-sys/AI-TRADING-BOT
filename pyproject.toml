@@ -10,6 +10,7 @@ dependencies = [
     "pyzmq>=25.0",
     "numpy>=1.26",
     "statsmodels>=0.14",
+    "scikit-learn>=1.4",
 ]
 
 [project.optional-dependencies]
@@ -36,6 +37,7 @@ packages = [
     "quant",
     "backtesting",
     "optimization",
+    "machine_learning",
 ]
 
 [[tool.mypy.overrides]]
@@ -44,6 +46,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["statsmodels", "statsmodels.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["sklearn", "sklearn.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
@@ -66,4 +72,5 @@ include = [
     "quant*",
     "backtesting*",
     "optimization*",
+    "machine_learning*",
 ]
