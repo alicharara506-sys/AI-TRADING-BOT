@@ -5,7 +5,11 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from core.interfaces.types import Bar, Direction, MarketContext, Symbol, Timeframe
-from quant.technical_analysis.volatility import AtrVolatilityBreakoutModule
+from quant.technical_analysis.volatility import (
+    AtrVolatilityBreakoutModule,
+    compute_atr,
+    compute_true_ranges,
+)
 
 _SYMBOL = Symbol(name="EURUSD")
 
@@ -74,3 +78,34 @@ def test_too_few_bars_emits_no_evidence() -> None:
     module = AtrVolatilityBreakoutModule(period=14, expansion_multiple=1.5)
 
     assert module.analyze(_context(_QUIET[:5])) == []
+
+
+def test_compute_true_ranges_matches_hand_computed_values() -> None:
+    bars = _context(
+        [(1.10, 1.10, 1.10, 1.10), (1.10, 1.12, 1.09, 1.11), (1.11, 1.13, 1.10, 1.12)]
+    ).bars
+
+    true_ranges = compute_true_ranges(bars)
+
+    assert true_ranges == pytest.approx([0.03, 0.03])
+
+
+def test_compute_atr_is_the_inclusive_trailing_average() -> None:
+    bars = _context(
+        [
+            (1.10, 1.10, 1.10, 1.10),
+            (1.10, 1.12, 1.09, 1.11),  # TR = 0.03
+            (1.11, 1.13, 1.10, 1.12),  # TR = 0.03
+            (1.12, 1.15, 1.11, 1.14),  # TR = 0.04
+        ]
+    ).bars
+
+    atr = compute_atr(bars, period=3)
+
+    assert atr == pytest.approx((0.03 + 0.03 + 0.04) / 3)
+
+
+def test_compute_atr_returns_none_with_insufficient_bars() -> None:
+    bars = _context([(1.10, 1.10, 1.10, 1.10), (1.10, 1.12, 1.09, 1.11)]).bars
+
+    assert compute_atr(bars, period=5) is None

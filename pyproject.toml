@@ -45,6 +45,7 @@ packages = [
     "benchmarks",
     "research_lab",
     "news_intelligence",
+    "decision_engine",
 ]
 
 [[tool.mypy.overrides]]
@@ -90,4 +91,5 @@ include = [
     "benchmarks*",
     "research_lab*",
     "news_intelligence*",
+    "decision_engine*",
 ]

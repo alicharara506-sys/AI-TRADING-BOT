@@ -23,6 +23,7 @@ FORBIDDEN_FROM_CORE = {
     "benchmarks",
     "research_lab",
     "news_intelligence",
+    "decision_engine",
 }
 
 

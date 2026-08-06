@@ -1,6 +1,42 @@
 from __future__ import annotations
 
-from core.interfaces.types import Direction, Evidence, MarketContext
+from collections.abc import Sequence
+
+from core.interfaces.types import Bar, Direction, Evidence, MarketContext
+
+
+def compute_true_ranges(bars: Sequence[Bar]) -> list[float]:
+    """One true-range value per bar after the first, using each bar and its
+    predecessor. Needs at least 2 bars; returns one fewer value than len(bars).
+    """
+    return [
+        max(
+            current.high - current.low,
+            abs(current.high - previous.close),
+            abs(current.low - previous.close),
+        )
+        for previous, current in zip(bars, bars[1:], strict=False)
+    ]
+
+
+def compute_atr(bars: Sequence[Bar], *, period: int) -> float | None:
+    """Standard trailing Average True Range: the mean of the most recent
+    `period` true-range values, inclusive of the latest bar -- the
+    conventional definition used for volatility-based position/stop sizing
+    (DecisionEngine's use case). None when there isn't enough history yet.
+
+    Deliberately not the same window AtrVolatilityBreakoutModule uses below:
+    that module needs a *baseline* to compare the newest bar against, so it
+    excludes the latest true range from its own average by construction --
+    a different question ("did this bar break out relative to history?")
+    from this function's ("what is current volatility?"). Both build on the
+    same compute_true_ranges() primitive rather than duplicating that math.
+    """
+    if len(bars) < period + 1:
+        return None
+    window = bars[-(period + 1) :]
+    true_ranges = compute_true_ranges(window)
+    return sum(true_ranges) / len(true_ranges)
 
 
 class AtrVolatilityBreakoutModule:
@@ -27,14 +63,7 @@ class AtrVolatilityBreakoutModule:
             return []
 
         window = bars[-(self._period + 1) :]
-        true_ranges = [
-            max(
-                current.high - current.low,
-                abs(current.high - previous.close),
-                abs(current.low - previous.close),
-            )
-            for previous, current in zip(window, window[1:], strict=False)
-        ]
+        true_ranges = compute_true_ranges(window)
 
         atr = sum(true_ranges[:-1]) / len(true_ranges[:-1])
         latest_true_range = true_ranges[-1]
