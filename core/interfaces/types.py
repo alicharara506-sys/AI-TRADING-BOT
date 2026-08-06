@@ -125,6 +125,7 @@ class OrderAck:
     correlation_id: str
     broker_order_id: str
     status: OrderStatus
+    fill_price: float | None = None
     reason: str | None = None
 
 

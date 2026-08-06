@@ -78,6 +78,7 @@ class _FakeOrderResult:
     retcode: int
     order: int = 0
     comment: str = ""
+    price: float = 0.0
 
 
 @dataclass
@@ -103,7 +104,7 @@ class FakeMT5Api:
         self.positions: list[_FakePosition] = []
         self.deals: list[_FakeDeal] = []
         self.sent_requests: list[dict[str, Any]] = []
-        self.next_order_result = _FakeOrderResult(retcode=TRADE_RETCODE_DONE, order=1)
+        self.next_order_result = _FakeOrderResult(retcode=TRADE_RETCODE_DONE, order=1, price=1.1005)
         self.initialize_result = True
         self.login_result = True
 
@@ -248,6 +249,7 @@ async def test_submit_market_order_success() -> None:
 
     assert ack.status == OrderStatus.FILLED
     assert ack.broker_order_id == "1"
+    assert ack.fill_price == pytest.approx(1.1005)
     sent = api.sent_requests[-1]
     assert sent["action"] == TRADE_ACTION_DEAL
     assert sent["type"] == ORDER_TYPE_BUY

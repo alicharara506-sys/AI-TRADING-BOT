@@ -26,7 +26,7 @@ testpaths = ["tests"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
-packages = ["core", "connectors"]
+packages = ["core", "connectors", "execution_backends"]
 
 [[tool.mypy.overrides]]
 module = ["pyarrow", "pyarrow.*"]
@@ -44,4 +44,4 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["core*", "connectors*"]
+include = ["core*", "connectors*", "execution_backends*"]

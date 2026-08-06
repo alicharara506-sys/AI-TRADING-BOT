@@ -246,6 +246,7 @@ class MT5Connector:
             correlation_id=request.correlation_id,
             broker_order_id=str(result.order),
             status=OrderStatus.FILLED,
+            fill_price=getattr(result, "price", None),
         )
 
     async def modify_position(

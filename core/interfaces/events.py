@@ -31,7 +31,6 @@ class OrderSubmitted:
 @dataclass(frozen=True, slots=True)
 class OrderFilled:
     ack: OrderAck
-    fill_price: float
 
 
 @dataclass(frozen=True, slots=True)
