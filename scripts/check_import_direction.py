@@ -22,6 +22,7 @@ FORBIDDEN_FROM_CORE = {
     "notifications",
     "benchmarks",
     "research_lab",
+    "news_intelligence",
 }
 
 
