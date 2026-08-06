@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import urllib.parse
 import urllib.request
 from typing import Protocol, runtime_checkable
 
@@ -37,6 +38,9 @@ class WebhookNotifier:
     def __init__(self, url: str, *, timeout_seconds: float = 5.0) -> None:
         if not url:
             raise ValueError("url must not be empty")
+        scheme = urllib.parse.urlsplit(url).scheme
+        if scheme not in ("http", "https"):
+            raise ValueError(f"url must be http(s), got scheme '{scheme}'")
         self._url = url
         self._timeout_seconds = timeout_seconds
 

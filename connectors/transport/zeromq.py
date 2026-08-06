@@ -8,6 +8,11 @@ from typing import Any
 import zmq
 import zmq.asyncio
 
+# A tick/bar/order-command JSON payload is at most a few hundred bytes; 1 MiB
+# is generous headroom while still bounding memory if a peer sends a
+# malformed or hostile oversized message.
+_DEFAULT_MAX_MESSAGE_BYTES = 1024 * 1024
+
 
 class ZmqPublisher:
     """PUB side of the tick/bar/account streaming channel. One process (the MT5
@@ -16,6 +21,7 @@ class ZmqPublisher:
     def __init__(self, bind_address: str, *, context: zmq.asyncio.Context | None = None) -> None:
         self._context = context or zmq.asyncio.Context.instance()
         self._socket = self._context.socket(zmq.PUB)
+        self._socket.setsockopt(zmq.MAXMSGSIZE, _DEFAULT_MAX_MESSAGE_BYTES)
         self._socket.bind(bind_address)
 
     async def publish(self, topic: str, payload: dict[str, Any]) -> None:
@@ -39,6 +45,7 @@ class ZmqSubscriber:
     ) -> None:
         self._context = context or zmq.asyncio.Context.instance()
         self._socket = self._context.socket(zmq.SUB)
+        self._socket.setsockopt(zmq.MAXMSGSIZE, _DEFAULT_MAX_MESSAGE_BYTES)
         self._socket.connect(connect_address)
         for topic in topics:
             self._socket.setsockopt(zmq.SUBSCRIBE, topic.encode("utf-8"))
@@ -67,9 +74,15 @@ class ZmqRequester:
         timeout_seconds: float = 5.0,
     ) -> None:
         self._context = context or zmq.asyncio.Context.instance()
-        self._socket = self._context.socket(zmq.REQ)
-        self._socket.connect(connect_address)
+        self._connect_address = connect_address
         self._timeout_seconds = timeout_seconds
+        self._socket = self._new_socket()
+
+    def _new_socket(self) -> zmq.asyncio.Socket:
+        socket = self._context.socket(zmq.REQ)
+        socket.setsockopt(zmq.MAXMSGSIZE, _DEFAULT_MAX_MESSAGE_BYTES)
+        socket.connect(self._connect_address)
+        return socket
 
     async def request(self, payload: dict[str, Any]) -> dict[str, Any]:
         message = json.dumps(payload).encode("utf-8")
@@ -77,6 +90,14 @@ class ZmqRequester:
         try:
             response = await asyncio.wait_for(self._socket.recv(), timeout=self._timeout_seconds)
         except TimeoutError as exc:
+            # A REQ socket that sent but never received enforces strict
+            # send/recv alternation, so it's now stuck expecting a reply that
+            # will never come -- any future send() on it raises. Recreating
+            # the socket is the only way to make the requester usable again
+            # for the next call, which is the entire point of surfacing a
+            # timeout instead of hanging: the caller can retry.
+            self._socket.close(linger=0)
+            self._socket = self._new_socket()
             raise TimeoutError(
                 f"No reply within {self._timeout_seconds}s for action "
                 f"'{payload.get('action', '?')}'"
@@ -98,6 +119,7 @@ class ZmqReplier:
     def __init__(self, bind_address: str, *, context: zmq.asyncio.Context | None = None) -> None:
         self._context = context or zmq.asyncio.Context.instance()
         self._socket = self._context.socket(zmq.REP)
+        self._socket.setsockopt(zmq.MAXMSGSIZE, _DEFAULT_MAX_MESSAGE_BYTES)
         self._socket.bind(bind_address)
 
     async def receive(self) -> dict[str, Any]:

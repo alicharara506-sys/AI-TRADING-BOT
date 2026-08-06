@@ -8,3 +8,12 @@ __pycache__/
 venv/
 dist/
 build/
+
+# Credentials and local overrides -- MT4/MT5 login/password, webhook URLs,
+# and any KERNEL_* environment overrides must never be committed.
+.env
+.env.*
+*.local.yaml
+*.local.yml
+secrets.yaml
+secrets.yml

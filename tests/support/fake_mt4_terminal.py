@@ -59,6 +59,15 @@ class FakeMT4Terminal:
 
         self.received_requests: list[dict[str, Any]] = []
 
+        # Fault injection: simulates the EA going briefly unresponsive --
+        # the request is received (so a real terminal is observably "there")
+        # but the reply is delayed, which is what actually drives
+        # ZmqRequester's timeout path in a chaos test. The REP socket's own
+        # recv/send alternation is still honored (the reply is delayed, not
+        # skipped), so the fake terminal itself never gets stuck.
+        self.stall_next_n_requests = 0
+        self.stall_seconds = 1.0
+
     def start(self) -> None:
         self._task = asyncio.create_task(self._serve_forever())
 
@@ -81,6 +90,9 @@ class FakeMT4Terminal:
         while True:
             request = await self._replier.receive()
             self.received_requests.append(request)
+            if self.stall_next_n_requests > 0:
+                self.stall_next_n_requests -= 1
+                await asyncio.sleep(self.stall_seconds)
             await self._replier.reply(self._handle(request))
 
     def _handle(self, request: dict[str, Any]) -> dict[str, Any]:

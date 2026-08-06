@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, TypeVar
 
 from connectors.mt5.api import (
     ACCOUNT_MARGIN_MODE_RETAIL_HEDGING,
@@ -41,6 +41,8 @@ from core.interfaces.types import (
     Trade,
 )
 from core.kernel.clock import LiveClock
+
+T = TypeVar("T")
 
 
 def _field(row: Any, name: str) -> Any:
@@ -105,6 +107,24 @@ class MT5Connector:
     def is_connected(self) -> bool:
         return self._connected
 
+    async def _mark_disconnected(self) -> None:
+        """Any direct MT5Api call that raises means the terminal connection is
+        no longer trustworthy -- flip state and tell the rest of the system,
+        rather than leaving `_connected` stale while an order/query path fails
+        silently underneath it. Deliberately does not auto-retry the call:
+        blindly retrying order_send risks submitting a duplicate order.
+        """
+        if self._connected:
+            self._connected = False
+            await self._event_bus.publish(ConnectionStateChanged(state=ConnectionState.LOST))
+
+    async def _call(self, func: Callable[[], T]) -> T:
+        try:
+            return func()
+        except Exception:
+            await self._mark_disconnected()
+            raise
+
     async def start(self) -> None:
         await self.connect()
         self._poll_task = asyncio.create_task(self._poll_loop())
@@ -129,11 +149,11 @@ class MT5Connector:
 
     async def get_symbol_info(self, symbol: Symbol) -> SymbolInfo:
         broker_symbol = self._symbol_mapper.to_broker(symbol)
-        info = self._api.symbol_info(broker_symbol)
+        info = await self._call(lambda: self._api.symbol_info(broker_symbol))
         if info is None:
             raise LookupError(f"Unknown symbol '{broker_symbol}'")
 
-        account = self._api.account_info()
+        account = await self._call(self._api.account_info)
         margin_mode = getattr(account, "margin_mode", ACCOUNT_MARGIN_MODE_RETAIL_HEDGING)
         account_mode = (
             AccountMode.HEDGING
@@ -153,7 +173,7 @@ class MT5Connector:
         )
 
     async def get_trade_history(self, from_ts: datetime, to_ts: datetime) -> list[Trade]:
-        deals = self._api.history_deals_get(from_ts, to_ts) or ()
+        deals = await self._call(lambda: self._api.history_deals_get(from_ts, to_ts) or ())
         return self._pair_deals_into_trades(deals)
 
     def _pair_deals_into_trades(self, deals: Sequence[Any]) -> list[Trade]:
@@ -183,7 +203,7 @@ class MT5Connector:
         return trades
 
     async def get_open_positions(self) -> list[Position]:
-        positions = self._api.positions_get() or ()
+        positions = await self._call(lambda: self._api.positions_get() or ())
         return [
             Position(
                 position_id=str(p.ticket),
@@ -198,7 +218,7 @@ class MT5Connector:
         ]
 
     async def get_account_state(self) -> AccountState:
-        account = self._api.account_info()
+        account = await self._call(self._api.account_info)
         if account is None:
             raise ConnectionError("account_info() returned None; not connected?")
         return AccountState(
@@ -232,7 +252,7 @@ class MT5Connector:
         if request.take_profit is not None:
             mt5_request["tp"] = request.take_profit
 
-        result = self._api.order_send(mt5_request)
+        result = await self._call(lambda: self._api.order_send(mt5_request))
         if result is None or result.retcode != TRADE_RETCODE_DONE:
             code = getattr(result, "retcode", None)
             reason = getattr(result, "comment", "order_send returned no result")
@@ -264,7 +284,7 @@ class MT5Connector:
             "sl": stop_loss if stop_loss is not None else position.sl,
             "tp": take_profit if take_profit is not None else position.tp,
         }
-        result = self._api.order_send(request)
+        result = await self._call(lambda: self._api.order_send(request))
         if result is None or result.retcode != TRADE_RETCODE_DONE:
             raise RuntimeError(f"Failed to modify position '{position_id}'")
 
@@ -278,12 +298,12 @@ class MT5Connector:
             "type": close_side,
             "position": position.ticket,
         }
-        result = self._api.order_send(request)
+        result = await self._call(lambda: self._api.order_send(request))
         if result is None or result.retcode != TRADE_RETCODE_DONE:
             raise RuntimeError(f"Failed to close position '{position_id}'")
 
     async def _find_position(self, position_id: str) -> Any:
-        positions = self._api.positions_get() or ()
+        positions = await self._call(lambda: self._api.positions_get() or ())
         for position in positions:
             if str(position.ticket) == position_id:
                 return position

@@ -41,6 +41,7 @@ packages = [
     "analytics",
     "reporting",
     "notifications",
+    "benchmarks",
 ]
 
 [[tool.mypy.overrides]]
@@ -79,4 +80,5 @@ include = [
     "analytics*",
     "reporting*",
     "notifications*",
+    "benchmarks*",
 ]

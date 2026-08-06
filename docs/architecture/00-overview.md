@@ -30,6 +30,10 @@ Read in order:
 
 ## Status
 
-Phase 0 (this document set) is complete. No implementation code has been written yet
-— per the roadmap's own process, code begins at Phase 1 (core kernel skeleton) only
-after this blueprint is reviewed and confirmed.
+All 14 phases in `07-roadmap.md` are complete, including Phase 14 (hardening:
+benchmarks, connector chaos-testing, security review, documentation). See the
+top-level [`README.md`](../../README.md) for the current repository layout,
+how to run the test/lint/type-check suite, and where the working end-to-end
+examples live. This document set remains the accurate architectural
+reference for *why* the system is shaped the way it is; it is no longer a
+forward-looking plan.

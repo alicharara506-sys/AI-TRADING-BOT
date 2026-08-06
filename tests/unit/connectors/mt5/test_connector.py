@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from dataclasses import dataclass
 from typing import Any
 
 import pytest
 
 from connectors.mt5.api import (
-    ACCOUNT_MARGIN_MODE_RETAIL_HEDGING,
     DEAL_ENTRY_IN,
     DEAL_ENTRY_OUT,
     ORDER_TYPE_BUY,
@@ -16,7 +14,6 @@ from connectors.mt5.api import (
     TIMEFRAME_MAP,
     TRADE_ACTION_DEAL,
     TRADE_ACTION_SLTP,
-    TRADE_RETCODE_DONE,
 )
 from connectors.mt5.connector import MT5Connector
 from connectors.mt_common.reconnect import ReconnectPolicy
@@ -31,118 +28,13 @@ from core.interfaces.types import (
     Symbol,
     Timeframe,
 )
-
-
-@dataclass
-class _FakeAccount:
-    balance: float = 10_000.0
-    equity: float = 10_000.0
-    margin: float = 0.0
-    margin_free: float = 10_000.0
-    margin_level: float = 0.0
-    currency: str = "USD"
-    margin_mode: int = ACCOUNT_MARGIN_MODE_RETAIL_HEDGING
-
-
-@dataclass
-class _FakeSymbolInfo:
-    digits: int = 5
-    point: float = 0.00001
-    trade_contract_size: float = 100_000.0
-    volume_min: float = 0.01
-    volume_max: float = 100.0
-    volume_step: float = 0.01
-
-
-@dataclass
-class _FakeTick:
-    time: float
-    bid: float
-    ask: float
-    volume: float = 0.0
-
-
-@dataclass
-class _FakePosition:
-    ticket: int
-    symbol: str
-    type: int
-    volume: float
-    price_open: float
-    sl: float = 0.0
-    tp: float = 0.0
-
-
-@dataclass
-class _FakeOrderResult:
-    retcode: int
-    order: int = 0
-    comment: str = ""
-    price: float = 0.0
-
-
-@dataclass
-class _FakeDeal:
-    position_id: int
-    symbol: str
-    type: int
-    volume: float
-    price: float
-    time: float
-    profit: float
-    entry: int
-
-
-class FakeMT5Api:
-    """Structurally satisfies MT5Api without needing the real MetaTrader5 package."""
-
-    def __init__(self) -> None:
-        self.account = _FakeAccount()
-        self.symbols: dict[str, _FakeSymbolInfo] = {"EURUSD": _FakeSymbolInfo()}
-        self.ticks: dict[str, _FakeTick] = {}
-        self.rates: dict[tuple[str, int], list[dict[str, Any]]] = {}
-        self.positions: list[_FakePosition] = []
-        self.deals: list[_FakeDeal] = []
-        self.sent_requests: list[dict[str, Any]] = []
-        self.next_order_result = _FakeOrderResult(retcode=TRADE_RETCODE_DONE, order=1, price=1.1005)
-        self.initialize_result = True
-        self.login_result = True
-
-    def initialize(self, **kwargs: Any) -> bool:
-        return self.initialize_result
-
-    def login(self, login: int, password: str, server: str) -> bool:
-        return self.login_result
-
-    def shutdown(self) -> None:
-        return None
-
-    def last_error(self) -> tuple[int, str]:
-        return (1, "simulated failure")
-
-    def account_info(self) -> Any:
-        return self.account
-
-    def symbol_info(self, symbol: str) -> Any:
-        return self.symbols.get(symbol)
-
-    def symbol_info_tick(self, symbol: str) -> Any:
-        return self.ticks.get(symbol)
-
-    def copy_rates_from_pos(self, symbol: str, timeframe: int, start_pos: int, count: int) -> Any:
-        return self.rates.get((symbol, timeframe), [])[start_pos : start_pos + count]
-
-    def order_send(self, request: dict[str, Any]) -> Any:
-        self.sent_requests.append(request)
-        return self.next_order_result
-
-    def positions_get(self, *, symbol: str | None = None) -> Any:
-        if symbol is None:
-            return list(self.positions)
-        return [p for p in self.positions if p.symbol == symbol]
-
-    def history_deals_get(self, date_from: Any, date_to: Any) -> Any:
-        return list(self.deals)
+from tests.support.fake_mt5_api import (
+    FakeDeal,
+    FakeMT5Api,
+    FakeOrderResult,
+    FakePosition,
+    FakeTick,
+)
 
 
 def _make_connector(
@@ -260,7 +152,7 @@ async def test_submit_market_order_success() -> None:
 @pytest.mark.asyncio
 async def test_submit_order_rejected_when_retcode_not_done() -> None:
     api = FakeMT5Api()
-    api.next_order_result = _FakeOrderResult(retcode=10004, comment="requote")
+    api.next_order_result = FakeOrderResult(retcode=10004, comment="requote")
     connector = _make_connector(api)
     request = OrderRequest(
         correlation_id="corr-2",
@@ -297,7 +189,7 @@ async def test_submit_non_market_order_raises() -> None:
 async def test_get_open_positions_maps_fields_and_zero_sl_tp_to_none() -> None:
     api = FakeMT5Api()
     api.positions.append(
-        _FakePosition(ticket=42, symbol="EURUSD", type=ORDER_TYPE_BUY, volume=0.5, price_open=1.1)
+        FakePosition(ticket=42, symbol="EURUSD", type=ORDER_TYPE_BUY, volume=0.5, price_open=1.1)
     )
     connector = _make_connector(api)
 
@@ -315,7 +207,7 @@ async def test_get_open_positions_maps_fields_and_zero_sl_tp_to_none() -> None:
 async def test_modify_position_sends_sltp_request() -> None:
     api = FakeMT5Api()
     api.positions.append(
-        _FakePosition(ticket=7, symbol="EURUSD", type=ORDER_TYPE_BUY, volume=0.1, price_open=1.1)
+        FakePosition(ticket=7, symbol="EURUSD", type=ORDER_TYPE_BUY, volume=0.1, price_open=1.1)
     )
     connector = _make_connector(api)
 
@@ -341,7 +233,7 @@ async def test_modify_unknown_position_raises() -> None:
 async def test_close_position_sends_opposite_side_deal() -> None:
     api = FakeMT5Api()
     api.positions.append(
-        _FakePosition(ticket=9, symbol="EURUSD", type=ORDER_TYPE_BUY, volume=0.3, price_open=1.1)
+        FakePosition(ticket=9, symbol="EURUSD", type=ORDER_TYPE_BUY, volume=0.3, price_open=1.1)
     )
     connector = _make_connector(api)
 
@@ -358,7 +250,7 @@ async def test_close_position_sends_opposite_side_deal() -> None:
 async def test_get_trade_history_pairs_entry_and_exit_deals() -> None:
     api = FakeMT5Api()
     api.deals = [
-        _FakeDeal(
+        FakeDeal(
             position_id=5,
             symbol="EURUSD",
             type=ORDER_TYPE_BUY,
@@ -368,7 +260,7 @@ async def test_get_trade_history_pairs_entry_and_exit_deals() -> None:
             profit=0.0,
             entry=DEAL_ENTRY_IN,
         ),
-        _FakeDeal(
+        FakeDeal(
             position_id=5,
             symbol="EURUSD",
             type=ORDER_TYPE_SELL,
@@ -405,7 +297,7 @@ async def test_poll_once_publishes_new_events_and_dedupes_unchanged() -> None:
     await connector.subscribe_ticks(symbol)
     await connector.subscribe_bars(symbol, Timeframe.M1)
 
-    api.ticks["EURUSD"] = _FakeTick(time=1000.0, bid=1.1000, ask=1.1002, volume=5.0)
+    api.ticks["EURUSD"] = FakeTick(time=1000.0, bid=1.1000, ask=1.1002, volume=5.0)
     api.rates[("EURUSD", TIMEFRAME_MAP["M1"])] = [
         {"time": 2000.0, "open": 1.1, "high": 1.2, "low": 1.05, "close": 1.15, "tick_volume": 42.0}
     ]

@@ -104,8 +104,17 @@ faster path to a real, working end-to-end system)
 
 ---
 
-**Immediate next step, pending your go-ahead:** Phase 1 — core kernel skeleton
-(`core/event_bus`, `core/kernel`, `core/interfaces`, `core/config`, `core/logging`,
-`core/metrics`), with unit tests and the CI import-direction check. This is the
-smallest slice that produces real, running, tested code without getting ahead of the
-architecture decisions above.
+## Status: all 14 phases complete
+
+Every phase above shipped with its stated exit criteria empirically verified,
+not just asserted. See [`README.md`](../../README.md) for the current
+repository layout and how to run the verification suite, and
+[`docs/runbook/backtest-to-live.md`](../runbook/backtest-to-live.md) for the
+operator-facing walkthrough of taking a strategy through this whole pipeline.
+Phase 14 specifically produced: [`docs/benchmarks/results.md`](../benchmarks/results.md)
+(Event Bus, backtest engine, Signal Fusion throughput/latency),
+[`tests/integration/test_connector_fault_tolerance.py`](../../tests/integration/test_connector_fault_tolerance.py)
+(MT4/MT5 chaos tests, which caught and fixed two real bugs: a stale
+connection-state flag on MT5 order/query failures, and an MT4 REQ socket left
+permanently stuck after a timeout), and
+[`docs/security/phase-14-review.md`](../security/phase-14-review.md).

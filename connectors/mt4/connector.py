@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from connectors.mt4.protocol import (
@@ -18,9 +18,11 @@ from connectors.mt4.protocol import (
     TOPIC_BAR,
     TOPIC_TICK,
 )
+from connectors.mt_common.reconnect import HeartbeatMonitor
 from connectors.mt_common.symbols import SymbolMapper
 from connectors.transport.zeromq import ZmqRequester, ZmqSubscriber
 from core.event_bus.bus import EventBus
+from core.interfaces.clock import Clock
 from core.interfaces.events import BarClosed, ConnectionStateChanged, TickReceived
 from core.interfaces.types import (
     AccountMode,
@@ -39,6 +41,7 @@ from core.interfaces.types import (
     Timeframe,
     Trade,
 )
+from core.kernel.clock import LiveClock
 
 
 class MT4Connector:
@@ -58,17 +61,25 @@ class MT4Connector:
         event_bus: EventBus,
         *,
         symbol_mapper: SymbolMapper | None = None,
+        clock: Clock | None = None,
+        heartbeat_degraded_after: timedelta = timedelta(seconds=10),
+        heartbeat_lost_after: timedelta = timedelta(seconds=30),
     ) -> None:
         self._requester = requester
         self._subscriber = subscriber
         self._event_bus = event_bus
         self._symbol_mapper = symbol_mapper or SymbolMapper()
         self._connected = False
+        self._heartbeat = HeartbeatMonitor(
+            clock or LiveClock(),
+            degraded_after=heartbeat_degraded_after,
+            lost_after=heartbeat_lost_after,
+        )
 
     # -- lifecycle -----------------------------------------------------------
 
     async def connect(self) -> None:
-        response = await self._requester.request({"action": ACTION_CONNECT})
+        response = await self._request({"action": ACTION_CONNECT})
         if not response.get("ok", False):
             raise ConnectionError(
                 f"MT4 EA connect failed: {response.get('error', 'unknown error')}"
@@ -77,12 +88,31 @@ class MT4Connector:
         await self._event_bus.publish(ConnectionStateChanged(state=ConnectionState.CONNECTED))
 
     async def disconnect(self) -> None:
-        await self._requester.request({"action": ACTION_DISCONNECT})
+        await self._request({"action": ACTION_DISCONNECT})
         self._connected = False
         await self._event_bus.publish(ConnectionStateChanged(state=ConnectionState.DISCONNECTED))
 
     def is_connected(self) -> bool:
         return self._connected
+
+    def heartbeat_state(self) -> ConnectionState:
+        """Derived purely from time since the last tick/bar observed in
+        listen() -- independent of is_connected(), which only reflects the
+        command channel. A command channel can be healthy while the market
+        data stream has gone silent, and vice versa.
+        """
+        return self._heartbeat.state()
+
+    async def _request(self, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            return await self._requester.request(payload)
+        except Exception:
+            if self._connected:
+                self._connected = False
+                await self._event_bus.publish(
+                    ConnectionStateChanged(state=ConnectionState.LOST)
+                )
+            raise
 
     async def listen(self) -> None:
         """Consumes the EA's tick/bar stream and republishes it onto the kernel
@@ -91,6 +121,7 @@ class MT4Connector:
         task alongside connect().
         """
         async for topic, payload in self._subscriber.messages():
+            self._heartbeat.record_heartbeat()
             if topic == TOPIC_TICK:
                 await self._event_bus.publish(TickReceived(tick=self._parse_tick(payload)))
             elif topic == TOPIC_BAR:
@@ -99,12 +130,12 @@ class MT4Connector:
     # -- subscriptions ---------------------------------------------------------
 
     async def subscribe_ticks(self, symbol: Symbol) -> None:
-        await self._requester.request(
+        await self._request(
             {"action": ACTION_SUBSCRIBE_TICKS, "symbol": self._symbol_mapper.to_broker(symbol)}
         )
 
     async def subscribe_bars(self, symbol: Symbol, timeframe: Timeframe) -> None:
-        await self._requester.request(
+        await self._request(
             {
                 "action": ACTION_SUBSCRIBE_BARS,
                 "symbol": self._symbol_mapper.to_broker(symbol),
@@ -115,7 +146,7 @@ class MT4Connector:
     # -- queries -----------------------------------------------------------
 
     async def get_symbol_info(self, symbol: Symbol) -> SymbolInfo:
-        response = await self._requester.request(
+        response = await self._request(
             {"action": ACTION_GET_SYMBOL_INFO, "symbol": self._symbol_mapper.to_broker(symbol)}
         )
         if not response.get("ok", False):
@@ -134,7 +165,7 @@ class MT4Connector:
         )
 
     async def get_trade_history(self, from_ts: datetime, to_ts: datetime) -> list[Trade]:
-        response = await self._requester.request(
+        response = await self._request(
             {
                 "action": ACTION_GET_TRADE_HISTORY,
                 "from_ts": from_ts.isoformat(),
@@ -144,11 +175,11 @@ class MT4Connector:
         return [self._parse_trade(item) for item in response.get("trades", [])]
 
     async def get_open_positions(self) -> list[Position]:
-        response = await self._requester.request({"action": ACTION_GET_OPEN_POSITIONS})
+        response = await self._request({"action": ACTION_GET_OPEN_POSITIONS})
         return [self._parse_position(item) for item in response.get("positions", [])]
 
     async def get_account_state(self) -> AccountState:
-        response = await self._requester.request({"action": ACTION_GET_ACCOUNT_STATE})
+        response = await self._request({"action": ACTION_GET_ACCOUNT_STATE})
         data = response["account"]
         return AccountState(
             balance=data["balance"],
@@ -178,7 +209,7 @@ class MT4Connector:
         if request.take_profit is not None:
             payload["take_profit"] = request.take_profit
 
-        response = await self._requester.request(payload)
+        response = await self._request(payload)
         if not response.get("ok", False):
             return OrderAck(
                 correlation_id=request.correlation_id,
@@ -200,7 +231,7 @@ class MT4Connector:
         stop_loss: float | None = None,
         take_profit: float | None = None,
     ) -> None:
-        response = await self._requester.request(
+        response = await self._request(
             {
                 "action": ACTION_MODIFY_POSITION,
                 "ticket": position_id,
@@ -214,7 +245,7 @@ class MT4Connector:
             )
 
     async def close_position(self, position_id: str, *, volume: float | None = None) -> None:
-        response = await self._requester.request(
+        response = await self._request(
             {"action": ACTION_CLOSE_POSITION, "ticket": position_id, "volume": volume}
         )
         if not response.get("ok", False):

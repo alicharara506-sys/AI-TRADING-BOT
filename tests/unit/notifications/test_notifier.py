@@ -19,6 +19,14 @@ def test_webhook_notifier_rejects_empty_url() -> None:
         WebhookNotifier("")
 
 
+@pytest.mark.parametrize(
+    "url", ["file:///etc/passwd", "ftp://example.com/x", "javascript:alert(1)"]
+)
+def test_webhook_notifier_rejects_non_http_schemes(url: str) -> None:
+    with pytest.raises(ValueError, match="http"):
+        WebhookNotifier(url)
+
+
 async def test_webhook_notifier_posts_json_payload_to_a_real_server() -> None:
     with recording_http_server(port=18581) as server:
         notifier = WebhookNotifier(f"http://127.0.0.1:{server.server.server_port}/")
