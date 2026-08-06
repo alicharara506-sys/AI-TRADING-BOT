@@ -1,25 +1,9 @@
 from __future__ import annotations
 
-from core.interfaces.types import Bar, Direction, Evidence, MarketContext
+from core.interfaces.types import Direction, Evidence, MarketContext
+from quant.price_action.swings import find_last_swings
 
 _RETRACEMENT_RATIOS = (0.236, 0.382, 0.5, 0.618, 0.786)
-
-
-def _find_last_swings(bars: list[Bar], *, arm: int) -> tuple[int | None, int | None]:
-    """Fractal-style swing detection: a bar is a swing high/low if its high/low
-    is the most extreme within `arm` bars on either side. Returns the index of
-    the most recent confirmed swing low and swing high seen anywhere in `bars`.
-    """
-    last_swing_low: int | None = None
-    last_swing_high: int | None = None
-    n = len(bars)
-    for i in range(arm, n - arm):
-        window = bars[i - arm : i + arm + 1]
-        if bars[i].high == max(b.high for b in window):
-            last_swing_high = i
-        if bars[i].low == min(b.low for b in window):
-            last_swing_low = i
-    return last_swing_low, last_swing_high
 
 
 class FibonacciConfluenceModule:
@@ -47,7 +31,7 @@ class FibonacciConfluenceModule:
         if len(bars) < 2 * self._swing_arm + 3:
             return []
 
-        low_index, high_index = _find_last_swings(bars, arm=self._swing_arm)
+        low_index, high_index = find_last_swings(bars, arm=self._swing_arm)
         if low_index is None or high_index is None or low_index == high_index:
             return []
 
