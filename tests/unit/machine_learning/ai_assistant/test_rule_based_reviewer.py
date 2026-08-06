@@ -5,7 +5,7 @@ from core.interfaces.validation import CheckResult, ValidationReport
 from machine_learning.ai_assistant.rule_based_reviewer import RuleBasedReviewer
 
 
-def test_passing_report_review_mentions_pass_and_every_check() -> None:
+async def test_passing_report_review_mentions_pass_and_every_check() -> None:
     report = ValidationReport(
         strategy_name="steady_strategy",
         checks=(
@@ -23,7 +23,7 @@ def test_passing_report_review_mentions_pass_and_every_check() -> None:
         ),
     )
 
-    text = RuleBasedReviewer().review_validation_report(report)
+    text = await RuleBasedReviewer().review_validation_report(report)
 
     assert "PASSED" in text
     assert "walk_forward" in text
@@ -32,7 +32,7 @@ def test_passing_report_review_mentions_pass_and_every_check() -> None:
     assert "Recommendation" not in text  # only surfaced when the report fails
 
 
-def test_failing_report_review_explains_degradation_and_recommends_against_deployment() -> None:
+async def test_failing_report_review_explains_degradation_and_recommends_against_deploy() -> None:
     report = ValidationReport(
         strategy_name="overfit_strategy",
         checks=(
@@ -50,7 +50,7 @@ def test_failing_report_review_explains_degradation_and_recommends_against_deplo
         ),
     )
 
-    text = RuleBasedReviewer().review_validation_report(report)
+    text = await RuleBasedReviewer().review_validation_report(report)
 
     assert "FAILED" in text
     assert "overfitting" in text.lower()
@@ -59,7 +59,7 @@ def test_failing_report_review_explains_degradation_and_recommends_against_deplo
     assert "walk_forward, monte_carlo_drawdown" in text
 
 
-def test_walk_forward_with_undefined_degradation_explains_why() -> None:
+async def test_walk_forward_with_undefined_degradation_explains_why() -> None:
     report = ValidationReport(
         strategy_name="s",
         checks=(
@@ -71,12 +71,12 @@ def test_walk_forward_with_undefined_degradation_explains_why() -> None:
         ),
     )
 
-    text = RuleBasedReviewer().review_validation_report(report)
+    text = await RuleBasedReviewer().review_validation_report(report)
 
     assert "not profitable" in text
 
 
-def test_walk_forward_too_few_trades_surfaces_the_reason() -> None:
+async def test_walk_forward_too_few_trades_surfaces_the_reason() -> None:
     report = ValidationReport(
         strategy_name="s",
         checks=(
@@ -88,12 +88,12 @@ def test_walk_forward_too_few_trades_surfaces_the_reason() -> None:
         ),
     )
 
-    text = RuleBasedReviewer().review_validation_report(report)
+    text = await RuleBasedReviewer().review_validation_report(report)
 
     assert "fewer than 10 trades" in text
 
 
-def test_look_ahead_failure_flags_the_pipeline_as_untrustworthy() -> None:
+async def test_look_ahead_failure_flags_the_pipeline_as_untrustworthy() -> None:
     report = ValidationReport(
         strategy_name="s",
         checks=(
@@ -105,13 +105,13 @@ def test_look_ahead_failure_flags_the_pipeline_as_untrustworthy() -> None:
         ),
     )
 
-    text = RuleBasedReviewer().review_validation_report(report)
+    text = await RuleBasedReviewer().review_validation_report(report)
 
     assert "untrustworthy" in text
     assert "index 5" in text
 
 
-def test_explain_trade_signal_lists_every_contributing_module() -> None:
+async def test_explain_trade_signal_lists_every_contributing_module() -> None:
     signal = TradeSignal(
         symbol=Symbol(name="EURUSD"),
         direction=Direction.LONG,
@@ -133,7 +133,7 @@ def test_explain_trade_signal_lists_every_contributing_module() -> None:
         ),
     )
 
-    text = RuleBasedReviewer().explain_trade_signal(signal)
+    text = await RuleBasedReviewer().explain_trade_signal(signal)
 
     assert "EURUSD" in text
     assert "87%" in text
@@ -141,7 +141,7 @@ def test_explain_trade_signal_lists_every_contributing_module() -> None:
     assert "engulfing_pattern" in text
 
 
-def test_explain_trade_signal_with_no_evidence() -> None:
+async def test_explain_trade_signal_with_no_evidence() -> None:
     signal = TradeSignal(
         symbol=Symbol(name="EURUSD"),
         direction=Direction.SHORT,
@@ -150,6 +150,6 @@ def test_explain_trade_signal_with_no_evidence() -> None:
         evidence=(),
     )
 
-    text = RuleBasedReviewer().explain_trade_signal(signal)
+    text = await RuleBasedReviewer().explain_trade_signal(signal)
 
     assert "0 contributing module(s)" in text

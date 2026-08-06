@@ -13,7 +13,7 @@ class RuleBasedReviewer:
     not a stand-in pretending to be more than it is.
     """
 
-    def review_validation_report(self, report: ValidationReport) -> str:
+    async def review_validation_report(self, report: ValidationReport) -> str:
         lines = [
             f"Validation review for '{report.strategy_name}': "
             f"{'PASSED' if report.passed else 'FAILED'}."
@@ -80,7 +80,7 @@ class RuleBasedReviewer:
         bars_checked = check.detail.get("bars_checked", 0)
         return f"- look_ahead_bias {status}: {bars_checked} bars verified in chronological order."
 
-    def explain_trade_signal(self, signal: TradeSignal) -> str:
+    async def explain_trade_signal(self, signal: TradeSignal) -> str:
         lines = [
             f"{signal.direction.value.upper()} signal for {signal.symbol.canonical} at "
             f"{signal.combined_confidence:.0%} combined confidence "

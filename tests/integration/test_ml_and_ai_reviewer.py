@@ -70,7 +70,7 @@ def _context() -> MarketContext:
     return MarketContext(symbol=_SYMBOL, bars=bars)
 
 
-def test_trained_model_plugs_into_signal_fusion_and_reviewer_explains_it() -> None:
+async def test_trained_model_plugs_into_signal_fusion_and_reviewer_explains_it() -> None:
     """Phase 12's exit criteria, in two parts: (1) a trained calibrated
     classifier composes through the existing SignalEngine/SignalFusion
     alongside quant modules with zero changes to either, and (2) the
@@ -93,13 +93,13 @@ def test_trained_model_plugs_into_signal_fusion_and_reviewer_explains_it() -> No
     contributing = {item.source_module for item in signal.evidence}
     assert contributing == {"fibonacci_confluence", "engulfing_pattern", "ml_prediction"}
 
-    explanation = RuleBasedReviewer().explain_trade_signal(signal)
+    explanation = await RuleBasedReviewer().explain_trade_signal(signal)
     assert "ml_prediction" in explanation
     assert "fibonacci_confluence" in explanation
     assert "LONG" in explanation
 
 
-def test_reviewer_explains_a_real_validation_pipeline_report() -> None:
+async def test_reviewer_explains_a_real_validation_pipeline_report() -> None:
     """The same AIReviewer also grounds its review in a genuine Phase 8
     ValidationReport, not a synthetic stand-in.
     """
@@ -116,7 +116,7 @@ def test_reviewer_explains_a_real_validation_pipeline_report() -> None:
     )
     assert report.passed
 
-    review = RuleBasedReviewer().review_validation_report(report)
+    review = await RuleBasedReviewer().review_validation_report(report)
 
     assert "PASSED" in review
     assert "walk_forward" in review
