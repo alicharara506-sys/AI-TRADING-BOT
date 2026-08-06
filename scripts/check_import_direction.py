@@ -17,6 +17,11 @@ FORBIDDEN_FROM_CORE = {
     "machine_learning",
     "database",
     "plugins",
+    "analytics",
+    "reporting",
+    "notifications",
+    "benchmarks",
+    "research_lab",
 }
 
 
