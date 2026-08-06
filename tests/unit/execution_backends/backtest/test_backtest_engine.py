@@ -14,6 +14,7 @@ from core.interfaces.types import (
     Symbol,
     Tick,
 )
+from execution_backends.backtest.commission import PerLotCommission
 from execution_backends.backtest.engine import BacktestExecutionEngine
 
 
@@ -45,6 +46,19 @@ async def test_buy_fills_at_ask_and_sell_fills_at_bid() -> None:
     assert buy_ack.fill_price == pytest.approx(1.1000)
     assert sell_ack.status == OrderStatus.FILLED
     assert sell_ack.fill_price == pytest.approx(1.0998)
+    assert buy_ack.commission == 0.0  # no commission_model given: ZeroCommission
+
+
+@pytest.mark.asyncio
+async def test_fill_applies_the_configured_commission_model() -> None:
+    event_bus = EventBus()
+    engine = BacktestExecutionEngine(event_bus, commission_model=PerLotCommission(7.0))
+    symbol = Symbol(name="EURUSD")
+    await event_bus.publish(TickReceived(tick=_tick(symbol, bid=1.0998, ask=1.1000)))
+
+    ack = await engine.submit_order(_market_order("buy-1", symbol, OrderSide.BUY))
+
+    assert ack.commission == pytest.approx(0.7)  # 0.1 lots * 7.0 per lot
 
 
 @pytest.mark.asyncio

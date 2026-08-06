@@ -126,6 +126,7 @@ class OrderAck:
     broker_order_id: str
     status: OrderStatus
     fill_price: float | None = None
+    commission: float = 0.0
     reason: str | None = None
 
 
