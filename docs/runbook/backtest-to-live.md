@@ -86,6 +86,11 @@ Choose MT5 or MT4:
   variables via `core/config/settings.py` or a gitignored local file --
   never a file intended to be committed (see
   [`docs/security/phase-14-review.md`](../security/phase-14-review.md)).
+  Before wiring up a full strategy, verify the connector against your real
+  terminal with
+  [`scripts/manual/mt5_connectivity_check.py`](../../scripts/manual/mt5_connectivity_check.py)
+  -- a read-only connect/account-state/symbol-info check that places no
+  orders. It must run on the same Windows machine as the terminal itself.
 - **MT4**: construct `connectors.mt4.connector.MT4Connector` with a
   `ZmqRequester`/`ZmqSubscriber` pointed at the companion MQL4 EA's bound
   addresses. **Run this on a private network segment** -- the ZeroMQ
