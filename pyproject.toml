@@ -38,6 +38,9 @@ packages = [
     "backtesting",
     "optimization",
     "machine_learning",
+    "analytics",
+    "reporting",
+    "notifications",
 ]
 
 [[tool.mypy.overrides]]
@@ -73,4 +76,7 @@ include = [
     "backtesting*",
     "optimization*",
     "machine_learning*",
+    "analytics*",
+    "reporting*",
+    "notifications*",
 ]

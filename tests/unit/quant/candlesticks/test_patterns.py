@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from analytics.hit_rate_store import HistoricalHitRateStore
 from core.interfaces.types import Bar, Direction, MarketContext, Symbol, Timeframe
 from quant.candlesticks.patterns import EngulfingPatternModule
 
@@ -92,3 +93,34 @@ def test_zero_size_body_emits_no_evidence() -> None:
     bars = [(1.10, 1.10, 1.10, 1.10), (1.05, 1.15, 1.05, 1.15)]
 
     assert module.analyze(_context(bars)) == []
+
+
+def test_hit_rate_store_overrides_geometric_confidence_once_enough_history() -> None:
+    store = HistoricalHitRateStore(min_samples=3)
+    module = EngulfingPatternModule(hit_rate_store=store)
+    bars = [(1.10, 1.10, 1.08, 1.08), (1.07, 1.12, 1.07, 1.12)]
+
+    # Not enough history yet -> falls back to the original geometric behavior.
+    evidence = module.analyze(_context(bars))
+    assert evidence[0].confidence == pytest.approx(1.0)
+    assert evidence[0].rationale["confidence_source"] == "geometric"
+
+    # Once the store has enough samples, its empirical hit rate takes over.
+    store.record_outcome("engulfing_pattern", "EURUSD", won=True)
+    store.record_outcome("engulfing_pattern", "EURUSD", won=True)
+    store.record_outcome("engulfing_pattern", "EURUSD", won=False)
+
+    evidence = module.analyze(_context(bars))
+    assert evidence[0].confidence == pytest.approx(2 / 3)
+    assert evidence[0].rationale["confidence_source"] == "historical_hit_rate"
+    assert evidence[0].supporting_data["geometric_confidence"] == pytest.approx(1.0)
+
+
+def test_no_hit_rate_store_preserves_original_geometric_behavior() -> None:
+    module = EngulfingPatternModule()
+    bars = [(1.10, 1.10, 1.08, 1.08), (1.07, 1.12, 1.07, 1.12)]
+
+    evidence = module.analyze(_context(bars))
+
+    assert evidence[0].confidence == pytest.approx(1.0)
+    assert evidence[0].rationale["confidence_source"] == "geometric"

@@ -1,21 +1,26 @@
 from __future__ import annotations
 
+from analytics.hit_rate_store import HistoricalHitRateStore
 from core.interfaces.types import Direction, Evidence, MarketContext
 
 
 class EngulfingPatternModule:
     """Bullish/Bearish Engulfing recognition: the current candle's real body
     fully contains the prior candle's real body, with opposite polarity.
-    Confidence is scaled by how much larger the engulfing body is relative to
-    the engulfed one -- a more decisive engulfment.
 
-    Historical win-rate-based confidence (per the architecture's Analytics
-    Engine lookup) is a later addition once that engine exists; this is
-    geometry-only for now, an explicitly scoped simplification, not a
-    placeholder pretending otherwise.
+    Confidence comes from the Analytics Engine's historical hit rate for this
+    exact pattern/symbol once enough history exists (a HistoricalHitRateStore
+    is supplied and has recorded at least its minimum sample count) -- real
+    backtested performance, not a fixed textbook figure. Until then, or when
+    no store is supplied at all, confidence falls back to the geometric
+    signal alone (how much larger the engulfing body is than the engulfed
+    one), preserving this module's original behavior exactly.
     """
 
     name = "engulfing_pattern"
+
+    def __init__(self, *, hit_rate_store: HistoricalHitRateStore | None = None) -> None:
+        self._hit_rate_store = hit_rate_store
 
     def analyze(self, context: MarketContext) -> list[Evidence]:
         bars = context.bars
@@ -50,18 +55,31 @@ class EngulfingPatternModule:
             return []
 
         size_ratio = current_body / previous_body
-        confidence = min(size_ratio - 1.0, 1.0)
-        if confidence <= 0.0:
+        geometric_confidence = min(size_ratio - 1.0, 1.0)
+        if geometric_confidence <= 0.0:
             return []
+
+        confidence = geometric_confidence
+        confidence_source = "geometric"
+        if self._hit_rate_store is not None:
+            historical = self._hit_rate_store.hit_rate(self.name, context.symbol.canonical)
+            if historical is not None:
+                confidence = historical
+                confidence_source = "historical_hit_rate"
 
         evidence = Evidence(
             source_module=self.name,
             direction=direction,
             confidence=confidence,
-            rationale={"pattern": "engulfing", "size_ratio": size_ratio},
+            rationale={
+                "pattern": "engulfing",
+                "size_ratio": size_ratio,
+                "confidence_source": confidence_source,
+            },
             supporting_data={
                 "previous_body": previous_body,
                 "current_body": current_body,
+                "geometric_confidence": geometric_confidence,
             },
         )
         return [evidence]
