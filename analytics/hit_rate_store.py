@@ -37,5 +37,13 @@ class HistoricalHitRateStore:
     def sample_count(self, module_name: str, symbol: str) -> int:
         return self._totals.get((module_name, symbol), 0)
 
+    def tracked_keys(self) -> list[tuple[str, str]]:
+        """Every (module_name, symbol) pair with at least one recorded
+        outcome -- lets a caller (reporting.agent_accuracy_report) build a
+        report across everything the store has ever seen, without already
+        having to know every module/symbol combination in advance.
+        """
+        return list(self._totals.keys())
+
 
 __all__ = ["HistoricalHitRateStore"]

@@ -48,3 +48,22 @@ def test_unknown_module_or_symbol_has_zero_samples_and_no_hit_rate() -> None:
 
     assert store.sample_count("nonexistent", "EURUSD") == 0
     assert store.hit_rate("nonexistent", "EURUSD") is None
+
+
+def test_tracked_keys_lists_every_module_symbol_pair_with_an_outcome() -> None:
+    store = HistoricalHitRateStore(min_samples=1)
+    store.record_outcome("engulfing_pattern", "EURUSD", won=True)
+    store.record_outcome("engulfing_pattern", "GBPUSD", won=False)
+    store.record_outcome("market_structure", "EURUSD", won=False)
+
+    assert set(store.tracked_keys()) == {
+        ("engulfing_pattern", "EURUSD"),
+        ("engulfing_pattern", "GBPUSD"),
+        ("market_structure", "EURUSD"),
+    }
+
+
+def test_tracked_keys_is_empty_for_a_fresh_store() -> None:
+    store = HistoricalHitRateStore(min_samples=5)
+
+    assert store.tracked_keys() == []
