@@ -93,4 +93,5 @@ include = [
     "research_lab*",
     "news_intelligence*",
     "decision_engine*",
+    "live_trading*",
 ]
