@@ -15,6 +15,7 @@ from core.execution.risk_gate import RiskGatedExecutionEngine
 from core.execution.validation_gate import ValidationGatedExecutionEngine
 from core.interfaces.connector import Connector
 from core.interfaces.events import AccountStateChanged
+from core.interfaces.strategy import Strategy
 from core.interfaces.types import Bar, Symbol, Timeframe
 from core.interfaces.validation import ValidationReport
 from core.portfolio.engine import PortfolioEngine
@@ -70,13 +71,14 @@ class LiveRunnerError(Exception):
 
 
 class LiveRunner:
-    """Ties a real MT5Connector to SmaCrossoverStrategy through every gate
-    docs/runbook/backtest-to-live.md requires: a pre-flight backtest against
-    this account's own real history run through the Validation Pipeline
-    first (run_forever() will not construct a live order path at all if that
-    report doesn't pass), then the platform's normal Risk Engine and
-    Strategy Engine wiring, with FlipSafeExecutionEngine closing any stale
-    opposite position first for accounts in hedging mode.
+    """Ties a real MT5Connector to a Strategy (SmaCrossoverStrategy by
+    default) through every gate docs/runbook/backtest-to-live.md requires: a
+    pre-flight backtest against this account's own real history run through
+    the Validation Pipeline first (run_forever() will not construct a live
+    order path at all if that report doesn't pass), then the platform's
+    normal Risk Engine and Strategy Engine wiring, with
+    FlipSafeExecutionEngine closing any stale opposite position first for
+    accounts in hedging mode.
     """
 
     def __init__(
@@ -85,11 +87,15 @@ class LiveRunner:
         config: LiveRunnerConfig,
         event_bus: EventBus,
         *,
+        strategy_factory: Callable[[], Strategy] | None = None,
+        strategy_name: str | None = None,
         pipeline: ValidationPipeline | None = None,
     ) -> None:
         self._connector = connector
         self._config = config
         self._event_bus = event_bus
+        self._strategy_factory = strategy_factory or self._default_strategy_factory
+        self._strategy_name = strategy_name or SmaCrossoverStrategy.strategy_name
         self._pipeline = pipeline or ValidationPipeline(
             walk_forward=WalkForwardCheck(max_degradation=0.5),
             monte_carlo=MonteCarloCheck(max_drawdown=30.0, iterations=500, seed=1),
@@ -101,7 +107,7 @@ class LiveRunner:
     def event_bus(self) -> EventBus:
         return self._event_bus
 
-    def _make_strategy(self) -> SmaCrossoverStrategy:
+    def _default_strategy_factory(self) -> SmaCrossoverStrategy:
         return SmaCrossoverStrategy(
             fast_period=self._config.fast_period, slow_period=self._config.slow_period
         )
@@ -112,9 +118,9 @@ class LiveRunner:
         )
         account = await self._connector.get_account_state()
         return await run_preflight_backtest(
-            self._make_strategy,
+            self._strategy_factory,
             bars,
-            strategy_name=SmaCrossoverStrategy.strategy_name,
+            strategy_name=self._strategy_name,
             starting_equity=account.equity,
             sizing_model=FixedVolumeSizingModel(self._config.volume),
             pipeline=self._pipeline,
@@ -153,7 +159,7 @@ class LiveRunner:
         validated_engine = ValidationGatedExecutionEngine(flip_safe_engine, report)
         risk_gated_engine = RiskGatedExecutionEngine(validated_engine, risk_engine, self._event_bus)
 
-        strategy = self._make_strategy()
+        strategy = self._strategy_factory()
         StrategyEngine(
             strategy,
             risk_engine,

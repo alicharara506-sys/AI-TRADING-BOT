@@ -12,6 +12,7 @@ from core.interfaces.events import AccountStateChanged
 from core.interfaces.types import Symbol, Timeframe
 from core.interfaces.validation import CheckResult, ValidationReport
 from live_trading.runner import LiveRunner, LiveRunnerConfig, LiveRunnerError
+from strategies.pattern.fibonacci_elliott_wave import FibonacciElliottWaveStrategy
 from tests.support.fake_mt5_api import FakeMT5Api
 
 _SYMBOL_NAME = "EURUSD"
@@ -111,3 +112,32 @@ async def test_run_forever_starts_the_live_loop_and_stops_cleanly() -> None:
     assert preflight_calls == [True]
     assert len(account_states) >= 2
     assert connector.is_connected() is False
+
+
+@pytest.mark.asyncio
+async def test_preflight_uses_the_overridden_strategy_factory() -> None:
+    """LiveRunner defaults to SmaCrossoverStrategy but must actually use
+    whatever strategy_factory/strategy_name is passed in -- proves the
+    override plumbs all the way through to run_preflight_backtest, not just
+    that it type-checks.
+    """
+    api = FakeMT5Api()
+    api.rates[(_SYMBOL_NAME, TIMEFRAME_MAP[_TIMEFRAME.value])] = _flat_rates(5)
+    event_bus = EventBus()
+    connector = _make_connector(api, event_bus)
+    config = LiveRunnerConfig(
+        symbol=Symbol(name=_SYMBOL_NAME), timeframe=_TIMEFRAME, history_bar_count=5
+    )
+    runner = LiveRunner(
+        connector,
+        config,
+        event_bus,
+        strategy_factory=FibonacciElliottWaveStrategy,
+        strategy_name=FibonacciElliottWaveStrategy.strategy_name,
+    )
+
+    report, trade_returns = await runner.preflight()
+
+    assert report.strategy_name == "fibonacci_elliott_wave"
+    assert trade_returns == []  # flat bars -> no impulse ever detected
+    await connector.disconnect()

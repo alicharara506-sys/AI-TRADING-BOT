@@ -1,4 +1,4 @@
-"""Live (demo or real) trading runner: SmaCrossoverStrategy wired to a REAL
+"""Live (demo or real) trading runner: a chosen Strategy wired to a REAL
 MT5 terminal, gated by a pre-flight backtest + Validation Pipeline run
 against this account's own real history.
 
@@ -21,9 +21,18 @@ first (hedging accounts, like the SupremeFX-Server account this platform
 was verified against, open a second position instead of netting otherwise).
 
 This is still real trading against a real account -- run it on the demo
-account first, and understand what SmaCrossoverStrategy actually does
-(strategies/simple/sma_crossover.py: a fast/slow moving-average crossover)
-before pointing it at money you're not prepared to lose.
+account first, and understand what the chosen strategy actually does
+before pointing it at money you're not prepared to lose:
+    $env:MT5_STRATEGY = "sma_crossover"          # default: fast/slow
+                                                  # moving-average crossover
+                                                  # (strategies/simple/sma_crossover.py)
+    $env:MT5_STRATEGY = "fibonacci_elliott_wave"  # fades a completed 5-wave
+                                                  # Elliott impulse whose wave
+                                                  # ratios are Fibonacci-typical
+                                                  # (strategies/pattern/fibonacci_elliott_wave.py)
+Neither is a validated, profitable strategy by default -- that's exactly
+what the pre-flight backtest below checks on your own account's real
+history, every single run.
 
 Setup (PowerShell, run once per session -- same as the connectivity check):
     py -m venv .venv
@@ -49,11 +58,13 @@ to match:
 Optional overrides (all have sensible defaults):
     $env:MT5_TRADE_TIMEFRAME = "M15"      # M1/M5/M15/M30/H1/H4/D1/W1/MN1
     $env:MT5_TRADE_VOLUME = "0.01"
-    $env:MT5_FAST_PERIOD = "5"
-    $env:MT5_SLOW_PERIOD = "20"
     $env:MT5_MAX_OPEN_POSITIONS = "2"
     $env:MT5_DAILY_LOSS_LIMIT = "100"
     $env:MT5_HISTORY_BAR_COUNT = "2000"
+    $env:MT5_FAST_PERIOD = "5"            # sma_crossover only
+    $env:MT5_SLOW_PERIOD = "20"           # sma_crossover only
+    $env:MT5_SWING_ARM = "2"              # fibonacci_elliott_wave only
+    $env:MT5_ELLIOTT_LOOKBACK = "300"     # fibonacci_elliott_wave only
 
 Run (from the repository root, with the venv active):
     python scripts\\manual\\run_live_strategy.py
@@ -97,6 +108,7 @@ async def main() -> None:
     from core.interfaces.types import Symbol, Timeframe
     from core.interfaces.validation import ValidationReport
     from live_trading.runner import LiveRunner, LiveRunnerConfig, LiveRunnerError
+    from live_trading.strategy_selection import SMA_CROSSOVER, build_strategy_factory
 
     login = int(_require_env("MT5_LOGIN"))
     password = _require_env("MT5_PASSWORD")
@@ -104,6 +116,7 @@ async def main() -> None:
     symbol_name = _require_env("MT5_TRADE_SYMBOL")
     symbol_suffix = os.environ.get("MT5_SYMBOL_SUFFIX", "")
     timeframe_name = os.environ.get("MT5_TRADE_TIMEFRAME", "M15")
+    strategy_choice = os.environ.get("MT5_STRATEGY", SMA_CROSSOVER)
 
     try:
         timeframe = Timeframe(timeframe_name)
@@ -115,11 +128,21 @@ async def main() -> None:
         )
         sys.exit(1)
 
+    try:
+        strategy_factory, strategy_name = build_strategy_factory(
+            strategy_choice,
+            fast_period=int(os.environ.get("MT5_FAST_PERIOD", "5")),
+            slow_period=int(os.environ.get("MT5_SLOW_PERIOD", "20")),
+            swing_arm=int(os.environ.get("MT5_SWING_ARM", "2")),
+            lookback=int(os.environ.get("MT5_ELLIOTT_LOOKBACK", "300")),
+        )
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(1)
+
     config = LiveRunnerConfig(
         symbol=Symbol(name=symbol_name),
         timeframe=timeframe,
-        fast_period=int(os.environ.get("MT5_FAST_PERIOD", "5")),
-        slow_period=int(os.environ.get("MT5_SLOW_PERIOD", "20")),
         volume=float(os.environ.get("MT5_TRADE_VOLUME", "0.01")),
         max_open_positions=int(os.environ.get("MT5_MAX_OPEN_POSITIONS", "2")),
         daily_loss_limit=float(os.environ.get("MT5_DAILY_LOSS_LIMIT", "100")),
@@ -143,8 +166,15 @@ async def main() -> None:
         print(f"FAILED to connect: {exc}", file=sys.stderr)
         sys.exit(1)
     print(f"Connected: {connector.is_connected()}")
+    print(f"Strategy: {strategy_name}")
 
-    runner = LiveRunner(connector, config, event_bus)
+    runner = LiveRunner(
+        connector,
+        config,
+        event_bus,
+        strategy_factory=strategy_factory,
+        strategy_name=strategy_name,
+    )
     event_bus.subscribe(
         OrderFilled, lambda e: print(f"ORDER FILLED: {e.ack.correlation_id} @ {e.ack.fill_price}")
     )
@@ -165,7 +195,7 @@ async def main() -> None:
                 f"best {max(trade_returns):+.5f}, worst {min(trade_returns):+.5f}"
             )
         else:
-            print("Trade history: 0 trades (no crossovers occurred in the fetched bars)")
+            print("Trade history: 0 trades (no signals occurred in the fetched bars)")
         if report.passed:
             print(f"\nValidation PASSED for {config.symbol.canonical}. Starting live trading.")
             print("Press Ctrl+C to stop.\n")

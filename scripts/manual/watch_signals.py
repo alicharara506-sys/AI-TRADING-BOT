@@ -1,5 +1,5 @@
-"""Signal-only watcher: prints BUY/SELL alerts for SmaCrossoverStrategy
-against a REAL MT5 account without ever submitting an order.
+"""Signal-only watcher: prints BUY/SELL alerts for a chosen Strategy against
+a REAL MT5 account without ever submitting an order.
 
 Use this instead of scripts/manual/run_live_strategy.py when your broker's
 server blocks automated order submission (MT5 retcode 10026, "AutoTrading
@@ -23,14 +23,20 @@ Setup (PowerShell, run once per session -- same as the other manual scripts):
     $env:MT5_TRADE_SYMBOL = "<the exact symbol name your broker uses, e.g. EURUSD>"
     $env:MT5_SYMBOL_SUFFIX = "<broker suffix if any, e.g. .gc -- see run_live_strategy.py>"
 
+Pick a strategy the same way run_live_strategy.py does:
+    $env:MT5_STRATEGY = "sma_crossover"          # default
+    $env:MT5_STRATEGY = "fibonacci_elliott_wave"
+
 Optional overrides (all have sensible defaults):
     $env:MT5_TRADE_TIMEFRAME = "M15"      # M1/M5/M15/M30/H1/H4/D1/W1/MN1
-    $env:MT5_FAST_PERIOD = "5"
-    $env:MT5_SLOW_PERIOD = "20"
     $env:MT5_HISTORY_BAR_COUNT = "2000"   # used only for the informational track record below
     $env:MT5_ATR_PERIOD = "14"            # bars of history needed before SL/TP can be shown
     $env:MT5_ATR_MULTIPLE = "2.0"         # stop distance = ATR * this
     $env:MT5_RISK_REWARD_RATIO = "1.5"    # take-profit distance = stop distance * this
+    $env:MT5_FAST_PERIOD = "5"            # sma_crossover only
+    $env:MT5_SLOW_PERIOD = "20"           # sma_crossover only
+    $env:MT5_SWING_ARM = "2"              # fibonacci_elliott_wave only
+    $env:MT5_ELLIOTT_LOOKBACK = "300"     # fibonacci_elliott_wave only
 
 Each signal prints an ATR-based stop-loss and take-profit
 (decision_engine.engine.DecisionEngine -- the same volatility-based level
@@ -87,7 +93,7 @@ async def main() -> None:
     from decision_engine.engine import DecisionEngine
     from live_trading.preflight import run_preflight_backtest
     from live_trading.signal_watcher import SignalWatcher
-    from strategies.simple.sma_crossover import SmaCrossoverStrategy
+    from live_trading.strategy_selection import SMA_CROSSOVER, build_strategy_factory
 
     login = int(_require_env("MT5_LOGIN"))
     password = _require_env("MT5_PASSWORD")
@@ -95,8 +101,7 @@ async def main() -> None:
     symbol_name = _require_env("MT5_TRADE_SYMBOL")
     symbol_suffix = os.environ.get("MT5_SYMBOL_SUFFIX", "")
     timeframe_name = os.environ.get("MT5_TRADE_TIMEFRAME", "M15")
-    fast_period = int(os.environ.get("MT5_FAST_PERIOD", "5"))
-    slow_period = int(os.environ.get("MT5_SLOW_PERIOD", "20"))
+    strategy_choice = os.environ.get("MT5_STRATEGY", SMA_CROSSOVER)
     history_bar_count = int(os.environ.get("MT5_HISTORY_BAR_COUNT", "2000"))
     atr_period = int(os.environ.get("MT5_ATR_PERIOD", "14"))
     atr_multiple = float(os.environ.get("MT5_ATR_MULTIPLE", "2.0"))
@@ -110,6 +115,18 @@ async def main() -> None:
             f"Invalid MT5_TRADE_TIMEFRAME '{timeframe_name}'. Valid values: {valid}",
             file=sys.stderr,
         )
+        sys.exit(1)
+
+    try:
+        strategy_factory, strategy_name = build_strategy_factory(
+            strategy_choice,
+            fast_period=int(os.environ.get("MT5_FAST_PERIOD", "5")),
+            slow_period=int(os.environ.get("MT5_SLOW_PERIOD", "20")),
+            swing_arm=int(os.environ.get("MT5_SWING_ARM", "2")),
+            lookback=int(os.environ.get("MT5_ELLIOTT_LOOKBACK", "300")),
+        )
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
         sys.exit(1)
 
     symbol = Symbol(name=symbol_name)
@@ -130,6 +147,7 @@ async def main() -> None:
         print(f"FAILED to connect: {exc}", file=sys.stderr)
         sys.exit(1)
     print(f"Connected: {connector.is_connected()}")
+    print(f"Strategy: {strategy_name}")
 
     print(
         f"\nFetching {history_bar_count} historical {timeframe.value} bars for "
@@ -146,9 +164,9 @@ async def main() -> None:
                 look_ahead=LookAheadBiasCheck(),
             )
             report, trade_returns = await run_preflight_backtest(
-                lambda: SmaCrossoverStrategy(fast_period=fast_period, slow_period=slow_period),
+                strategy_factory,
                 bars,
-                strategy_name=SmaCrossoverStrategy.strategy_name,
+                strategy_name=strategy_name,
                 starting_equity=account.equity,
                 sizing_model=FixedVolumeSizingModel(1.0),
                 pipeline=pipeline,
@@ -199,7 +217,7 @@ async def main() -> None:
             "This bot did not place a trade -- place it yourself in MT5 if you want to act on it.\n"
         )
 
-    strategy = SmaCrossoverStrategy(fast_period=fast_period, slow_period=slow_period)
+    strategy = strategy_factory()
     SignalWatcher(symbol, strategy, event_bus, on_signal=_on_signal, history=bars)
 
     await connector.start()
