@@ -27,6 +27,14 @@ Setup (PowerShell, run once per session):
     $env:MT5_PASSWORD = "<your demo account password>"
     $env:MT5_SERVER = "SupremeFX-Server"
 
+Optional: if your broker suffixes its symbol names (e.g. Market Watch shows
+"EURUSD.gc" rather than plain "EURUSD"), set the suffix separately -- symbol
+names are matched case-sensitively against the broker's own list, and this
+platform always uppercases the base name, so a lowercase suffix typed into
+MT5_CHECK_SYMBOL directly would silently fail to match:
+    $env:MT5_CHECK_SYMBOL = "EURUSD"
+    $env:MT5_SYMBOL_SUFFIX = ".gc"
+
 Run (from the repository root, with the venv active):
     python scripts\\manual\\mt5_connectivity_check.py
 
@@ -64,6 +72,7 @@ async def main() -> None:
         sys.exit(1)
 
     from connectors.mt5.connector import MT5Connector
+    from connectors.mt_common.symbols import SymbolMapper
     from core.event_bus.bus import EventBus
     from core.interfaces.types import Symbol
 
@@ -71,9 +80,17 @@ async def main() -> None:
     password = _require_env("MT5_PASSWORD")
     server = _require_env("MT5_SERVER")
     symbol_name = os.environ.get("MT5_CHECK_SYMBOL", "EURUSD")
+    symbol_suffix = os.environ.get("MT5_SYMBOL_SUFFIX", "")
 
     event_bus = EventBus()
-    connector = MT5Connector(mt5, event_bus, login=login, password=password, server=server)
+    connector = MT5Connector(
+        mt5,
+        event_bus,
+        login=login,
+        password=password,
+        server=server,
+        symbol_mapper=SymbolMapper(suffix=symbol_suffix),
+    )
 
     print(f"Connecting to server='{server}' login={login} ...")
     try:

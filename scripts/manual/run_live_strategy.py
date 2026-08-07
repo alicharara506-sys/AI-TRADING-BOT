@@ -36,8 +36,15 @@ Setup (PowerShell, run once per session -- same as the connectivity check):
     $env:MT5_SERVER = "<your broker's server name>"
     $env:MT5_TRADE_SYMBOL = "<the exact symbol name your broker uses, e.g. EURUSD>"
 
-Find MT5_TRADE_SYMBOL in your MT5 terminal's "Market Watch" panel (Ctrl+M)
--- some brokers suffix it (EURUSD.a, EURUSDm, ...); it must match exactly.
+Find MT5_TRADE_SYMBOL in your MT5 terminal's "Market Watch" panel (Ctrl+M).
+If your broker suffixes its symbol names (e.g. Market Watch shows
+"EURUSD.gc" rather than plain "EURUSD"), set the base name and the suffix
+separately -- symbol names are matched case-sensitively against the
+broker's own list, and this platform always uppercases the base name, so a
+lowercase suffix typed directly into MT5_TRADE_SYMBOL would silently fail
+to match:
+    $env:MT5_TRADE_SYMBOL = "EURUSD"
+    $env:MT5_SYMBOL_SUFFIX = ".gc"
 
 Optional overrides (all have sensible defaults):
     $env:MT5_TRADE_TIMEFRAME = "M15"      # M1/M5/M15/M30/H1/H4/D1/W1/MN1
@@ -83,6 +90,7 @@ async def main() -> None:
         sys.exit(1)
 
     from connectors.mt5.connector import MT5Connector
+    from connectors.mt_common.symbols import SymbolMapper
     from core.event_bus.bus import EventBus
     from core.interfaces.events import ConnectionStateChanged, OrderFilled, OrderRejected
     from core.interfaces.types import Symbol, Timeframe
@@ -93,6 +101,7 @@ async def main() -> None:
     password = _require_env("MT5_PASSWORD")
     server = _require_env("MT5_SERVER")
     symbol_name = _require_env("MT5_TRADE_SYMBOL")
+    symbol_suffix = os.environ.get("MT5_SYMBOL_SUFFIX", "")
     timeframe_name = os.environ.get("MT5_TRADE_TIMEFRAME", "M15")
 
     try:
@@ -117,7 +126,14 @@ async def main() -> None:
     )
 
     event_bus = EventBus()
-    connector = MT5Connector(mt5, event_bus, login=login, password=password, server=server)
+    connector = MT5Connector(
+        mt5,
+        event_bus,
+        login=login,
+        password=password,
+        server=server,
+        symbol_mapper=SymbolMapper(suffix=symbol_suffix),
+    )
 
     print(f"Connecting to server='{server}' login={login} ...")
     try:
