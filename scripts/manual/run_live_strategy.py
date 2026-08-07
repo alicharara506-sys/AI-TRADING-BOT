@@ -65,6 +65,7 @@ strategy running unattended after the process exits.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import os
 import sys
 
@@ -196,4 +197,5 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    with contextlib.suppress(KeyboardInterrupt):
+        asyncio.run(main())

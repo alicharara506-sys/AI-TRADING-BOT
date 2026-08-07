@@ -22,6 +22,15 @@ CI cannot: a real terminal, real credentials, a real account.
   gates and `FlipSafeExecutionEngine` (closes a stale opposite position
   first on hedging accounts, since MT5 hedging mode doesn't net an opposite
   order against an existing position the way a netting account does).
+- `watch_signals.py` — the fallback when a broker's server itself refuses
+  automated order submission (MT5 retcode 10026, "AutoTrading disabled by
+  server" -- a permission this platform cannot grant or route around, seen
+  in practice on a real SupremeFX-Server demo account). Runs the exact same
+  `SmaCrossoverStrategy` against real live bars via
+  `live_trading.signal_watcher.SignalWatcher`
+  (`../../live_trading/signal_watcher.py`) and prints a `SIGNAL:` alert with
+  the price and time whenever it fires, but never calls `submit_order` --
+  the trade is placed by hand in the MT5 terminal.
 
 Before running anything here against a real account: read
 [`docs/security/phase-14-review.md`](../../docs/security/phase-14-review.md)
