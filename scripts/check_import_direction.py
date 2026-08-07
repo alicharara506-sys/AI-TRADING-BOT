@@ -25,6 +25,7 @@ FORBIDDEN_FROM_CORE = {
     "news_intelligence",
     "decision_engine",
     "macro_data",
+    "cot_data",
 }
 
 

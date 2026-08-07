@@ -62,6 +62,16 @@ CI cannot: a real terminal, real credentials, a real account.
   infrastructure only: nothing in this platform yet trades on it (see that
   module's docstring for why a directional AnalysisModule wasn't built
   alongside it).
+- `cftc_cot_connectivity_check.py` — read-only sanity check that
+  `cot_data.providers.cftc.CftcCotProvider` (`../../cot_data/providers/cftc.py`)
+  works against the real CFTC (Commodity Futures Trading Commission)
+  public Commitments of Traders (COT) API. Fetches and prints a handful
+  of recent weekly reports for one contract market (default `099741`,
+  EURO FX on the Chicago Mercantile Exchange). No API key or registration
+  needed — the CFTC's public reporting API is open to anyone, and like
+  `fred_connectivity_check.py` this one is cross-platform. Also data-layer
+  infrastructure only (see `cot_data/__init__.py`'s docstring for why a
+  directional AnalysisModule wasn't built alongside it).
 
 ## Available strategies
 

@@ -55,6 +55,7 @@ packages = [
     "live_trading",
     "database",
     "macro_data",
+    "cot_data",
 ]
 
 [[tool.mypy.overrides]]
@@ -104,4 +105,5 @@ include = [
     "live_trading*",
     "database*",
     "macro_data*",
+    "cot_data*",
 ]
