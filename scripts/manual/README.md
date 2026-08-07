@@ -12,8 +12,8 @@ CI cannot: a real terminal, real credentials, a real account.
   on the same machine as the terminal). Connects, reads account state,
   symbol info, and open positions. Never places, modifies, or closes an
   order.
-- `run_live_strategy.py` — runs a chosen `Strategy` (`MT5_STRATEGY`: either
-  `sma_crossover` or `fibonacci_elliott_wave` -- see
+- `run_live_strategy.py` — runs a chosen `Strategy` (`MT5_STRATEGY`: one of
+  `sma_crossover`, `fibonacci_elliott_wave`, or `signal_fusion` -- see
   `live_trading.strategy_selection`, `../../live_trading/strategy_selection.py`)
   against a real MT5 account through `live_trading.runner.LiveRunner`
   (`../../live_trading/runner.py`). Before it will place a single order, it
@@ -63,10 +63,25 @@ CI cannot: a real terminal, real credentials, a real account.
   (the three checkable structural rules plus Fibonacci ratio typicality),
   not the subjective wave-counting judgment real Elliott Wave analysis is
   notorious for disagreeing on -- see that module's docstring.
+- `signal_fusion` (`strategies/composite/signal_fusion_strategy.py`) -- the
+  full multi-module signal engine: every `AnalysisModule` this platform has
+  built (`strategies/composite/module_roster.py` --  Fibonacci confluence/
+  extension, Elliott Wave-adjacent market structure, candlestick patterns,
+  ADF mean-reversion, ATR volatility breakout, OBV, MACD, ADX, Bollinger/
+  Keltner/Donchian bands, anchored VWAP, volume profile, fair value gaps,
+  liquidity sweeps, seasonality, and higher-timeframe alignment) runs on
+  every bar, and `core.signal.fusion.SignalFusion` combines their Evidence
+  into one `TradeSignal` -- the same log-odds-weighted consensus every
+  quant-module integration test already proves works, now actually
+  reachable from a live account. Configurable via
+  `MT5_SIGNAL_FUSION_THRESHOLD` (default 0.6, must be in `[0.5, 1.0)`) and
+  `MT5_HIGHER_TIMEFRAME` (default `H4`; set empty to disable the
+  higher-timeframe module).
 
-Neither strategy is a validated, profitable strategy by default. That's
-exactly what the pre-flight backtest checks against your own account's
-real history, every single run, before either script will place an order.
+None of the three strategies is a validated, profitable strategy by
+default. That's exactly what the pre-flight backtest checks against your
+own account's real history, every single run, before either script will
+place an order.
 
 Before running anything here against a real account: read
 [`docs/security/phase-14-review.md`](../../docs/security/phase-14-review.md)

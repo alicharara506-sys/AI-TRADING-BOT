@@ -30,9 +30,13 @@ before pointing it at money you're not prepared to lose:
                                                   # Elliott impulse whose wave
                                                   # ratios are Fibonacci-typical
                                                   # (strategies/pattern/fibonacci_elliott_wave.py)
-Neither is a validated, profitable strategy by default -- that's exactly
-what the pre-flight backtest below checks on your own account's real
-history, every single run.
+    $env:MT5_STRATEGY = "signal_fusion"          # every AnalysisModule this
+                                                  # platform has built, fused by
+                                                  # SignalFusion into one signal
+                                                  # (strategies/composite/)
+None of these is a validated, profitable strategy by default -- that's
+exactly what the pre-flight backtest below checks on your own account's
+real history, every single run.
 
 Setup (PowerShell, run once per session -- same as the connectivity check):
     py -m venv .venv
@@ -63,8 +67,10 @@ Optional overrides (all have sensible defaults):
     $env:MT5_HISTORY_BAR_COUNT = "2000"
     $env:MT5_FAST_PERIOD = "5"            # sma_crossover only
     $env:MT5_SLOW_PERIOD = "20"           # sma_crossover only
-    $env:MT5_SWING_ARM = "2"              # fibonacci_elliott_wave only
-    $env:MT5_ELLIOTT_LOOKBACK = "300"     # fibonacci_elliott_wave only
+    $env:MT5_SWING_ARM = "2"              # fibonacci_elliott_wave, signal_fusion
+    $env:MT5_ELLIOTT_LOOKBACK = "300"     # fibonacci_elliott_wave, signal_fusion
+    $env:MT5_SIGNAL_FUSION_THRESHOLD = "0.6"  # signal_fusion only, must be in [0.5, 1.0)
+    $env:MT5_HIGHER_TIMEFRAME = "H4"      # signal_fusion only; empty string disables it
 
 Run (from the repository root, with the venv active):
     python scripts\\manual\\run_live_strategy.py
@@ -128,6 +134,19 @@ async def main() -> None:
         )
         sys.exit(1)
 
+    higher_timeframe_name = os.environ.get("MT5_HIGHER_TIMEFRAME", "H4")
+    higher_timeframe: Timeframe | None = None
+    if higher_timeframe_name:
+        try:
+            higher_timeframe = Timeframe(higher_timeframe_name)
+        except ValueError:
+            valid = ", ".join(t.value for t in Timeframe)
+            print(
+                f"Invalid MT5_HIGHER_TIMEFRAME '{higher_timeframe_name}'. Valid values: {valid}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
     try:
         strategy_factory, strategy_name = build_strategy_factory(
             strategy_choice,
@@ -135,6 +154,8 @@ async def main() -> None:
             slow_period=int(os.environ.get("MT5_SLOW_PERIOD", "20")),
             swing_arm=int(os.environ.get("MT5_SWING_ARM", "2")),
             lookback=int(os.environ.get("MT5_ELLIOTT_LOOKBACK", "300")),
+            signal_fusion_threshold=float(os.environ.get("MT5_SIGNAL_FUSION_THRESHOLD", "0.6")),
+            higher_timeframe=higher_timeframe,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)

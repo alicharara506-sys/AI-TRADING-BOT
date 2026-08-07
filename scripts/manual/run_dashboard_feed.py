@@ -25,6 +25,9 @@ Setup (PowerShell, run once per session -- same as the other manual scripts):
 Pick a strategy the same way run_live_strategy.py / watch_signals.py do:
     $env:MT5_STRATEGY = "sma_crossover"          # default
     $env:MT5_STRATEGY = "fibonacci_elliott_wave"
+    $env:MT5_STRATEGY = "signal_fusion"          # every AnalysisModule this
+                                                  # platform has built, fused
+                                                  # into one signal
 
 Optional overrides (all have sensible defaults):
     $env:MT5_TRADE_TIMEFRAME = "M15"
@@ -34,8 +37,10 @@ Optional overrides (all have sensible defaults):
     $env:MT5_RISK_REWARD_RATIO = "1.5"
     $env:MT5_FAST_PERIOD = "5"                    # sma_crossover only
     $env:MT5_SLOW_PERIOD = "20"                   # sma_crossover only
-    $env:MT5_SWING_ARM = "2"                      # fibonacci_elliott_wave only
-    $env:MT5_ELLIOTT_LOOKBACK = "300"             # fibonacci_elliott_wave only
+    $env:MT5_SWING_ARM = "2"                      # fibonacci_elliott_wave, signal_fusion
+    $env:MT5_ELLIOTT_LOOKBACK = "300"             # fibonacci_elliott_wave, signal_fusion
+    $env:MT5_SIGNAL_FUSION_THRESHOLD = "0.6"      # signal_fusion only, must be in [0.5, 1.0)
+    $env:MT5_HIGHER_TIMEFRAME = "H4"              # signal_fusion only; empty disables it
     $env:MT5_DASHBOARD_DB_PATH = "dashboard.db"   # SQLite file the dashboard reads
     $env:MT5_ACCOUNT_SNAPSHOT_INTERVAL_SECONDS = "30"
 
@@ -113,6 +118,19 @@ async def main() -> None:
         )
         sys.exit(1)
 
+    higher_timeframe_name = os.environ.get("MT5_HIGHER_TIMEFRAME", "H4")
+    higher_timeframe: Timeframe | None = None
+    if higher_timeframe_name:
+        try:
+            higher_timeframe = Timeframe(higher_timeframe_name)
+        except ValueError:
+            valid = ", ".join(t.value for t in Timeframe)
+            print(
+                f"Invalid MT5_HIGHER_TIMEFRAME '{higher_timeframe_name}'. Valid values: {valid}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
     try:
         strategy_factory, strategy_name = build_strategy_factory(
             strategy_choice,
@@ -120,6 +138,8 @@ async def main() -> None:
             slow_period=int(os.environ.get("MT5_SLOW_PERIOD", "20")),
             swing_arm=int(os.environ.get("MT5_SWING_ARM", "2")),
             lookback=int(os.environ.get("MT5_ELLIOTT_LOOKBACK", "300")),
+            signal_fusion_threshold=float(os.environ.get("MT5_SIGNAL_FUSION_THRESHOLD", "0.6")),
+            higher_timeframe=higher_timeframe,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
