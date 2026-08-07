@@ -12,6 +12,7 @@ dependencies = [
     "statsmodels>=0.14",
     "scikit-learn>=1.4",
     "scipy>=1.11",
+    "sqlalchemy>=2.0",
 ]
 
 [project.optional-dependencies]
@@ -21,6 +22,10 @@ dev = [
     "mypy>=1.9",
     "ruff>=0.4",
     "types-PyYAML>=6.0",
+]
+dashboard = [
+    "streamlit>=1.30",
+    "plotly>=5.20",
 ]
 
 [tool.pytest.ini_options]
@@ -47,6 +52,7 @@ packages = [
     "news_intelligence",
     "decision_engine",
     "live_trading",
+    "database",
 ]
 
 [[tool.mypy.overrides]]
@@ -94,4 +100,5 @@ include = [
     "news_intelligence*",
     "decision_engine*",
     "live_trading*",
+    "database*",
 ]

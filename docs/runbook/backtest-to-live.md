@@ -147,6 +147,26 @@ pattern-based `AnalysisModule`s (see `EngulfingPatternModule`) so their
 Evidence confidence shifts from a geometric estimate to a real empirical
 win rate once enough live outcomes have been recorded.
 
+### Visual monitoring: the Streamlit dashboard
+
+[`scripts/manual/run_dashboard_feed.py`](../../scripts/manual/run_dashboard_feed.py)
+is a read-only companion to `run_live_strategy.py`/`watch_signals.py`: it
+watches the same chosen strategy against a real MT5 account (never
+submitting an order itself) and persists every signal -- with its full
+`SignalFusion` evidence, ATR-based stop-loss/take-profit, account
+snapshots, and the underlying bars -- into a local SQLite database via
+[`database/repository.py`](../../database/repository.py).
+[`scripts/manual/dashboard/app.py`](../../scripts/manual/dashboard/app.py)
+reads that same database and renders it: account/connection state, the
+latest signal with its agent-voting breakdown, a candlestick chart with
+Fibonacci retracement/Elliott Wave/volume-profile/market-structure
+overlays, a confidence gauge, a trade journal, and a performance tab built
+on the same `PerformanceReport` used in step 3 above. Run the feed script
+first, then `streamlit run scripts/manual/dashboard/app.py -- --db-path
+dashboard.db` in a second window -- see both scripts' docstrings and
+[`scripts/manual/README.md`](../../scripts/manual/README.md) for the full
+environment-variable reference.
+
 ## Chaos-tolerance expectations
 
 Both connectors now flip `is_connected()` to `False` and publish

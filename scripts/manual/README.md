@@ -33,6 +33,23 @@ CI cannot: a real terminal, real credentials, a real account.
   with an ATR-based stop-loss/take-profit suggestion from
   `decision_engine.engine.DecisionEngine` -- whenever it fires, but never
   calls `submit_order`: the trade is placed by hand in the MT5 terminal.
+- `run_dashboard_feed.py` — another read-only watcher (never calls
+  `submit_order`), but instead of printing to the console it persists every
+  signal (with its full agent-voting evidence and suggested SL/TP), account
+  snapshot, and the underlying bars into a local SQLite database via
+  `database.repository.SqliteSignalRepository`
+  (`../../database/repository.py`). Pair it with `dashboard/app.py` below
+  for a visual view of the same data.
+- `dashboard/app.py` — a read-only Streamlit dashboard over the SQLite
+  database `run_dashboard_feed.py` writes to. Never opens its own MT5
+  connection. Shows account/connection state, the latest signal with its
+  `SignalFusion` evidence rendered as an agent-voting table, a candlestick
+  chart with Fibonacci retracement / Elliott Wave / volume-profile /
+  market-structure overlays (`quant/technical_analysis/volume_profile.py`
+  and the existing `quant/price_action/*` modules), a confidence gauge, a
+  trade journal, and a performance tab. Needs the `dashboard` extra:
+  `pip install -e ".[dashboard]"`, then
+  `streamlit run scripts/manual/dashboard/app.py -- --db-path dashboard.db`.
 
 ## Available strategies
 
