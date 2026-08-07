@@ -100,6 +100,9 @@ class FakeMT5Api:
     def account_info(self) -> Any:
         return self.account
 
+    def symbol_select(self, symbol: str, enable: bool = True) -> bool:
+        return symbol in self.symbols
+
     def symbol_info(self, symbol: str) -> Any:
         return self.symbols.get(symbol)
 

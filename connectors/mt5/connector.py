@@ -140,15 +140,23 @@ class MT5Connector:
     # -- subscriptions ---------------------------------------------------------
 
     async def subscribe_ticks(self, symbol: Symbol) -> None:
-        self._tick_subscriptions.add(self._symbol_mapper.to_broker(symbol))
+        broker_symbol = self._symbol_mapper.to_broker(symbol)
+        await self._call(lambda: self._api.symbol_select(broker_symbol, True))
+        self._tick_subscriptions.add(broker_symbol)
 
     async def subscribe_bars(self, symbol: Symbol, timeframe: Timeframe) -> None:
-        self._bar_subscriptions.add((self._symbol_mapper.to_broker(symbol), timeframe))
+        broker_symbol = self._symbol_mapper.to_broker(symbol)
+        await self._call(lambda: self._api.symbol_select(broker_symbol, True))
+        self._bar_subscriptions.add((broker_symbol, timeframe))
 
     # -- queries -----------------------------------------------------------
 
     async def get_symbol_info(self, symbol: Symbol) -> SymbolInfo:
         broker_symbol = self._symbol_mapper.to_broker(symbol)
+        # The real terminal only returns data for symbols visible in Market
+        # Watch; symbol_select() adds it if it isn't there yet. Best-effort --
+        # a False return still falls through to the symbol_info() None check.
+        await self._call(lambda: self._api.symbol_select(broker_symbol, True))
         info = await self._call(lambda: self._api.symbol_info(broker_symbol))
         if info is None:
             raise LookupError(f"Unknown symbol '{broker_symbol}'")
