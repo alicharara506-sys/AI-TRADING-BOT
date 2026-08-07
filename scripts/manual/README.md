@@ -50,6 +50,18 @@ CI cannot: a real terminal, real credentials, a real account.
   trade journal, and a performance tab. Needs the `dashboard` extra:
   `pip install -e ".[dashboard]"`, then
   `streamlit run scripts/manual/dashboard/app.py -- --db-path dashboard.db`.
+- `fred_connectivity_check.py` — read-only sanity check that
+  `macro_data.providers.fred.FredMacroProvider`
+  (`../../macro_data/providers/fred.py`) works against the real FRED
+  (Federal Reserve Economic Data) API. Fetches and prints a handful of
+  recent observations for one series (default `T10Y2Y`, the 10Y-2Y
+  Treasury yield spread). Needs a free `FRED_API_KEY`
+  (https://fred.stlouisfed.org/docs/api/api_key.html) -- unlike the
+  MT5-dependent scripts above, this one is cross-platform (no Windows/MT5
+  terminal needed) since FRED is a plain HTTPS API. This is data-layer
+  infrastructure only: nothing in this platform yet trades on it (see that
+  module's docstring for why a directional AnalysisModule wasn't built
+  alongside it).
 
 ## Available strategies
 
