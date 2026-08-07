@@ -50,6 +50,26 @@ CI cannot: a real terminal, real credentials, a real account.
   trade journal, and a performance tab. Needs the `dashboard` extra:
   `pip install -e ".[dashboard]"`, then
   `streamlit run scripts/manual/dashboard/app.py -- --db-path dashboard.db`.
+- `seed_demo_data.py` / `run_demo_dashboard.py` — preview the dashboard on
+  `localhost` with **zero setup**: no MT5 terminal, no broker account, no
+  credentials, no network access. `seed_demo_data.py` generates a
+  synthetic random-walk price series (symbol `DEMOFX`, obviously not a
+  real broker's symbol) and runs it through the real
+  `SignalFusionStrategy` roster, so every recorded signal is genuine
+  output from the real code, just fed fake input. `run_demo_dashboard.py`
+  seeds `demo.db` (if it doesn't already exist) and launches the
+  dashboard against it in one command — run it, then open the `Local URL`
+  it prints (typically `http://localhost:8501`):
+  ```
+  pip install -e ".[dashboard]"
+  python scripts/manual/run_demo_dashboard.py
+  ```
+  Pass `--reset` to regenerate `demo.db`. The dashboard shows a persistent
+  "DEMO MODE" banner (`--demo`) so nothing on the page can be mistaken for
+  a real account. This is a preview of the UI only — it never connects to
+  MT5, so switching to real data still means following the
+  `run_dashboard_feed.py` + `dashboard/app.py` steps above with a real
+  account.
 - `fred_connectivity_check.py` — read-only sanity check that
   `macro_data.providers.fred.FredMacroProvider`
   (`../../macro_data/providers/fred.py`) works against the real FRED

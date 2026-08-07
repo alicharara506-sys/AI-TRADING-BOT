@@ -9,6 +9,10 @@ venv/
 dist/
 build/
 
+# Local SQLite databases written by scripts/manual/run_dashboard_feed.py
+# and scripts/manual/run_demo_dashboard.py -- never committed data.
+*.db
+
 # Credentials and local overrides -- MT4/MT5 login/password, webhook URLs,
 # and any KERNEL_* environment overrides must never be committed.
 .env
