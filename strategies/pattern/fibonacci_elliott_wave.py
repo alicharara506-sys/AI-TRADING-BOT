@@ -13,6 +13,9 @@ from quant.price_action.elliott_wave import ImpulseWave, find_five_wave_impulse
 _WAVE2_RETRACEMENT_RANGE = (0.382, 0.786)
 _WAVE4_RETRACEMENT_RANGE = (0.236, 0.5)
 _MIN_WAVE3_EXTENSION = 1.0
+# The "equality" guideline's loose typical band: wave 5 roughly comparable
+# to wave 1 in length, not a hard rule like the two ranges above.
+_WAVE5_WAVE1_RANGE = (0.5, 2.0)
 # Retracement ratios are computed from bar prices via division, so an exact
 # boundary value (e.g. a clean 50% retracement) can land a hair outside its
 # band due to ordinary floating-point rounding -- this tolerance absorbs
@@ -83,6 +86,9 @@ class FibonacciElliottWaveStrategy:
                 "wave2_retracement": impulse.wave2_retracement,
                 "wave4_retracement": impulse.wave4_retracement,
                 "wave3_extension": impulse.wave3_extension,
+                "wave5_wave1_ratio": impulse.wave5_wave1_ratio,
+                "alternation_holds": impulse.alternation_holds,
+                "is_truncated": impulse.is_truncated,
             },
         )
         return TradeSignal(
@@ -107,10 +113,25 @@ class FibonacciElliottWaveStrategy:
         # Bounded geometric confidence: how centered each retracement sits
         # within its typical Fibonacci band -- the same "confidence scaled
         # by how textbook the pattern is" spirit FibonacciConfluenceModule
-        # already uses for a single retracement level.
+        # already uses for a single retracement level. This is the primary
+        # score -- it's already the sole gate on whether the impulse trades
+        # at all (_has_typical_fibonacci_ratios).
         wave2_score = _centeredness(impulse.wave2_retracement, _WAVE2_RETRACEMENT_RANGE)
         wave4_score = _centeredness(impulse.wave4_retracement, _WAVE4_RETRACEMENT_RANGE)
-        return max(0.1, (wave2_score + wave4_score) / 2)
+        fibonacci_score = (wave2_score + wave4_score) / 2
+
+        # Secondary, non-gating guideline factors (equality, alternation,
+        # truncation): they nudge confidence toward a more "textbook"
+        # completion without ever being able to reject a candidate the
+        # Fibonacci-ratio check already accepted -- the "rule-satisfaction
+        # as confidence factor, not a fabricated wave probability" approach
+        # the migration plan calls for.
+        equality_score = _centeredness(impulse.wave5_wave1_ratio, _WAVE5_WAVE1_RANGE)
+        alternation_score = 1.0 if impulse.alternation_holds else 0.5
+        truncation_score = 0.5 if impulse.is_truncated else 1.0
+        guideline_score = (equality_score + alternation_score + truncation_score) / 3
+
+        return max(0.1, 0.7 * fibonacci_score + 0.3 * guideline_score)
 
 
 def _centeredness(value: float, band: tuple[float, float]) -> float:
