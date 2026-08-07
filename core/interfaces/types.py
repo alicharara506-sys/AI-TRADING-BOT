@@ -187,3 +187,10 @@ class MarketContext:
     symbol: Symbol
     bars: tuple[Bar, ...]
     ticks: tuple[Tick, ...] = ()
+    # Optional bars for OTHER timeframes of the same symbol, keyed by
+    # Timeframe -- populated by callers that fetch multi-timeframe data
+    # (see live_trading/multi_timeframe.py), read by modules like
+    # HigherTimeframeAlignmentModule (quant/multi_timeframe/alignment.py).
+    # Defaults to empty so every existing AnalysisModule and every existing
+    # caller that only ever knew about `bars` keeps working unchanged.
+    higher_timeframe_bars: dict[Timeframe, tuple[Bar, ...]] = field(default_factory=dict)
