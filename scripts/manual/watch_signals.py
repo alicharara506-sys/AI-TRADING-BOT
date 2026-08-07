@@ -28,6 +28,17 @@ Optional overrides (all have sensible defaults):
     $env:MT5_FAST_PERIOD = "5"
     $env:MT5_SLOW_PERIOD = "20"
     $env:MT5_HISTORY_BAR_COUNT = "2000"   # used only for the informational track record below
+    $env:MT5_ATR_PERIOD = "14"            # bars of history needed before SL/TP can be shown
+    $env:MT5_ATR_MULTIPLE = "2.0"         # stop distance = ATR * this
+    $env:MT5_RISK_REWARD_RATIO = "1.5"    # take-profit distance = stop distance * this
+
+Each signal prints an ATR-based stop-loss and take-profit
+(decision_engine.engine.DecisionEngine -- the same volatility-based level
+computation used elsewhere in this platform, not a new invention): stop =
+entry -+ ATR * MT5_ATR_MULTIPLE, take-profit = stop distance *
+MT5_RISK_REWARD_RATIO beyond entry. These are suggested levels to enter
+yourself in MT5 alongside the trade -- nothing here places or modifies an
+order.
 
 Run (from the repository root, with the venv active):
     python scripts\\manual\\watch_signals.py
@@ -71,8 +82,9 @@ async def main() -> None:
     from connectors.mt5.connector import MT5Connector
     from connectors.mt_common.symbols import SymbolMapper
     from core.event_bus.bus import EventBus
-    from core.interfaces.types import Bar, Symbol, Timeframe, TradeSignal
+    from core.interfaces.types import Bar, MarketContext, Symbol, Timeframe, TradeSignal
     from core.risk.sizing import FixedVolumeSizingModel
+    from decision_engine.engine import DecisionEngine
     from live_trading.preflight import run_preflight_backtest
     from live_trading.signal_watcher import SignalWatcher
     from strategies.simple.sma_crossover import SmaCrossoverStrategy
@@ -86,6 +98,9 @@ async def main() -> None:
     fast_period = int(os.environ.get("MT5_FAST_PERIOD", "5"))
     slow_period = int(os.environ.get("MT5_SLOW_PERIOD", "20"))
     history_bar_count = int(os.environ.get("MT5_HISTORY_BAR_COUNT", "2000"))
+    atr_period = int(os.environ.get("MT5_ATR_PERIOD", "14"))
+    atr_multiple = float(os.environ.get("MT5_ATR_MULTIPLE", "2.0"))
+    risk_reward_ratio = float(os.environ.get("MT5_RISK_REWARD_RATIO", "1.5"))
 
     try:
         timeframe = Timeframe(timeframe_name)
@@ -120,6 +135,7 @@ async def main() -> None:
         f"\nFetching {history_bar_count} historical {timeframe.value} bars for "
         f"{symbol.canonical} for context (informational only -- does not block signals)..."
     )
+    bars: list[Bar] = []
     try:
         bars = await connector.get_historical_bars(symbol, timeframe, history_bar_count)
         if len(bars) >= 2:
@@ -153,16 +169,38 @@ async def main() -> None:
     except LookupError as exc:
         print(f"Could not fetch historical context: {exc}. Continuing anyway.")
 
-    def _on_signal(signal: TradeSignal, bar: Bar) -> None:
+    decision_engine = DecisionEngine(
+        FixedVolumeSizingModel(0.01),  # size is not shown -- decide your own when placing manually
+        atr_period=atr_period,
+        atr_multiple=atr_multiple,
+        risk_reward_ratio=risk_reward_ratio,
+    )
+
+    def _on_signal(signal: TradeSignal, bar: Bar, history: tuple[Bar, ...]) -> None:
         now = datetime.now(UTC).isoformat(timespec="seconds")
         print(
             f"\n*** SIGNAL: {signal.direction.value.upper()} {signal.symbol.canonical} "
-            f"-- bar close {bar.close} at {bar.timestamp.isoformat()} (detected {now}) ***\n"
+            f"-- bar close {bar.close} at {bar.timestamp.isoformat()} (detected {now}) ***"
+        )
+        context = MarketContext(symbol=symbol, bars=history)
+        report = decision_engine.decide(signal, context, equity=1.0)
+        if report.recommended_stop_loss is not None and report.recommended_take_profit is not None:
+            print(
+                f"Suggested stop-loss: {report.recommended_stop_loss:.5f}  "
+                f"take-profit: {report.recommended_take_profit:.5f}  "
+                f"(ATR={report.atr:.5f}, entry~{bar.close})"
+            )
+        else:
+            print(
+                f"Not enough bar history yet for a stop-loss/take-profit suggestion "
+                f"(need {atr_period + 1}+ bars, have {len(history)})."
+            )
+        print(
             "This bot did not place a trade -- place it yourself in MT5 if you want to act on it.\n"
         )
 
     strategy = SmaCrossoverStrategy(fast_period=fast_period, slow_period=slow_period)
-    SignalWatcher(symbol, strategy, event_bus, on_signal=_on_signal)
+    SignalWatcher(symbol, strategy, event_bus, on_signal=_on_signal, history=bars)
 
     await connector.start()
     await connector.subscribe_bars(symbol, timeframe)
