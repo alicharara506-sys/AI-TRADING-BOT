@@ -115,6 +115,27 @@ This is the exact same `strategy` object used in backtesting, unmodified --
 that's what backtest/live parity means in this codebase. Only the
 `ExecutionEngine` and data source changed.
 
+### Automated version of steps 4-6: `live_trading.runner.LiveRunner`
+
+[`live_trading/runner.py`](../../live_trading/runner.py) automates this
+whole sequence for `SmaCrossoverStrategy` against a real MT5 account:
+`LiveRunner.preflight()` fetches the account's own real historical bars
+(`MT5Connector.get_historical_bars`), replays them through
+`live_trading.preflight.run_preflight_backtest` (the same
+`BacktestExecutionEngine` + Validation Pipeline wiring as steps 2-4 above),
+and `run_forever()` refuses to construct the live execution path at all if
+that report doesn't pass -- there is no separate step to remember to run.
+The live path itself wraps `LiveExecutionEngine` with
+`live_trading.flip_safe_execution.FlipSafeExecutionEngine`, which closes any
+existing opposite-side position before a flip signal opens a new one:
+required because an MT5 hedging account (`AccountMode.HEDGING`) opens a
+second, independent position for an opposite-side order instead of netting
+it the way the kernel's own simulated `PositionManager` does.
+[`scripts/manual/run_live_strategy.py`](../../scripts/manual/run_live_strategy.py)
+is the runnable entry point, configured entirely by environment variables
+(see its docstring); like the connectivity check, it must run on the same
+Windows machine as the terminal.
+
 ## 7. Monitor
 
 Configure a `Notifier` (`notifications/notifier.py`) -- `LoggingNotifier`

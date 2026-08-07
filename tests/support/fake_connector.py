@@ -24,6 +24,8 @@ class FakeConnector:
         self._connected = False
         self.fill_price = fill_price
         self.submitted_requests: list[OrderRequest] = []
+        self.positions: list[Position] = []
+        self.closed_position_ids: list[str] = []
 
     async def connect(self) -> None:
         self._connected = True
@@ -65,10 +67,11 @@ class FakeConnector:
         return None
 
     async def close_position(self, position_id: str, *, volume: float | None = None) -> None:
-        return None
+        self.closed_position_ids.append(position_id)
+        self.positions = [p for p in self.positions if p.position_id != position_id]
 
     async def get_open_positions(self) -> list[Position]:
-        return []
+        return list(self.positions)
 
     async def get_account_state(self) -> AccountState:
         return AccountState(

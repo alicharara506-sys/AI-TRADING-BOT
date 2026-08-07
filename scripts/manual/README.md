@@ -12,6 +12,16 @@ CI cannot: a real terminal, real credentials, a real account.
   on the same machine as the terminal). Connects, reads account state,
   symbol info, and open positions. Never places, modifies, or closes an
   order.
+- `run_live_strategy.py` — runs `SmaCrossoverStrategy` against a real MT5
+  account through `live_trading.runner.LiveRunner`
+  (`../../live_trading/runner.py`). Before it will place a single order, it
+  fetches the account's own real historical bars and runs the strategy
+  through the same backtest engine and Validation Pipeline described in the
+  runbook below -- a strategy that doesn't pass is refused, not warned
+  about. Every order that is placed still passes through the Risk Engine's
+  gates and `FlipSafeExecutionEngine` (closes a stale opposite position
+  first on hedging accounts, since MT5 hedging mode doesn't net an opposite
+  order against an existing position the way a netting account does).
 
 Before running anything here against a real account: read
 [`docs/security/phase-14-review.md`](../../docs/security/phase-14-review.md)

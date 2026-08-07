@@ -124,6 +124,41 @@ async def test_get_symbol_info_unknown_symbol_raises() -> None:
 
 
 @pytest.mark.asyncio
+async def test_get_historical_bars_skips_current_forming_bar() -> None:
+    api = FakeMT5Api()
+    connector = _make_connector(api)
+    api.rates[("EURUSD", TIMEFRAME_MAP["M1"])] = [
+        {
+            "time": 1_700_000_000 + i * 60,
+            "open": 1.10 + i * 0.001,
+            "high": 1.11 + i * 0.001,
+            "low": 1.09 + i * 0.001,
+            "close": 1.105 + i * 0.001,
+            "tick_volume": 100 + i,
+        }
+        for i in range(5)
+    ]
+
+    bars = await connector.get_historical_bars(Symbol(name="EURUSD"), Timeframe.M1, 3)
+
+    assert len(bars) == 3
+    assert bars[0].open == pytest.approx(1.101)
+    assert bars[0].close == pytest.approx(1.106)
+    assert bars[0].volume == 101
+    assert bars[-1].timestamp > bars[0].timestamp
+
+
+@pytest.mark.asyncio
+async def test_get_historical_bars_unknown_symbol_returns_empty() -> None:
+    api = FakeMT5Api()
+    connector = _make_connector(api)
+
+    bars = await connector.get_historical_bars(Symbol(name="GBPJPY"), Timeframe.M1, 10)
+
+    assert bars == []
+
+
+@pytest.mark.asyncio
 async def test_submit_market_order_success() -> None:
     api = FakeMT5Api()
     connector = _make_connector(api)

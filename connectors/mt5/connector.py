@@ -180,6 +180,39 @@ class MT5Connector:
             account_mode=account_mode,
         )
 
+    async def get_historical_bars(
+        self, symbol: Symbol, timeframe: Timeframe, count: int
+    ) -> list[Bar]:
+        """Fetch up to `count` fully-closed historical bars, oldest first.
+        start_pos=1 skips the still-forming current bar (position 0) that
+        _poll_bars deliberately also treats as not-yet-closed -- used by the
+        live-trading pre-flight backtest (live_trading/preflight.py) to
+        validate a strategy against this account's own real history before
+        it may place a single live order.
+        """
+        broker_symbol = self._symbol_mapper.to_broker(symbol)
+        await self._call(lambda: self._api.symbol_select(broker_symbol, True))
+        rows = await self._call(
+            lambda: self._api.copy_rates_from_pos(
+                broker_symbol, TIMEFRAME_MAP[timeframe.value], 1, count
+            )
+        )
+        if rows is None:
+            return []
+        return [
+            Bar(
+                symbol=symbol,
+                timeframe=timeframe,
+                timestamp=datetime.fromtimestamp(_field(row, "time"), tz=UTC),
+                open=_field(row, "open"),
+                high=_field(row, "high"),
+                low=_field(row, "low"),
+                close=_field(row, "close"),
+                volume=_field(row, "tick_volume"),
+            )
+            for row in rows
+        ]
+
     async def get_trade_history(self, from_ts: datetime, to_ts: datetime) -> list[Trade]:
         deals = await self._call(lambda: self._api.history_deals_get(from_ts, to_ts) or ())
         return self._pair_deals_into_trades(deals)
