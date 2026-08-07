@@ -63,6 +63,11 @@ def _make_engine(
     max_open_positions: int = 3,
     daily_loss_limit: float = 500.0,
     clock: Clock | None = None,
+    max_drawdown_percent: float | None = None,
+    max_correlation: float | None = None,
+    max_spread: float | None = None,
+    max_exposure: float | None = None,
+    min_risk_reward_ratio: float | None = None,
 ) -> tuple[EventBus, RiskEngine, PortfolioEngine]:
     event_bus = EventBus()
     order_manager = OrderManager(event_bus)
@@ -74,6 +79,11 @@ def _make_engine(
         max_open_positions=max_open_positions,
         daily_loss_limit=daily_loss_limit,
         clock=clock,
+        max_drawdown_percent=max_drawdown_percent,
+        max_correlation=max_correlation,
+        max_spread=max_spread,
+        max_exposure=max_exposure,
+        min_risk_reward_ratio=min_risk_reward_ratio,
     )
     return event_bus, risk, portfolio
 
@@ -160,3 +170,139 @@ async def test_daily_loss_baseline_resets_on_new_day() -> None:
 
     await event_bus.publish(AccountStateChanged(account_state=_account_state(9_800.0)))
     assert risk.is_kill_switch_engaged()
+
+
+# -- Phase 5 filters ------------------------------------------------------
+
+
+def test_rejects_invalid_phase5_construction_parameters() -> None:
+    event_bus = EventBus()
+    portfolio = PortfolioEngine(PositionManager(OrderManager(event_bus), event_bus))
+    base = {"max_open_positions": 1, "daily_loss_limit": 100.0}
+    with pytest.raises(ValueError):
+        RiskEngine(portfolio, event_bus, **base, max_drawdown_percent=0.0)
+    with pytest.raises(ValueError):
+        RiskEngine(portfolio, event_bus, **base, max_drawdown_percent=100.0)
+    with pytest.raises(ValueError):
+        RiskEngine(portfolio, event_bus, **base, max_correlation=0.0)
+    with pytest.raises(ValueError):
+        RiskEngine(portfolio, event_bus, **base, max_correlation=1.5)
+    with pytest.raises(ValueError):
+        RiskEngine(portfolio, event_bus, **base, max_spread=0.0)
+    with pytest.raises(ValueError):
+        RiskEngine(portfolio, event_bus, **base, max_exposure=0.0)
+    with pytest.raises(ValueError):
+        RiskEngine(portfolio, event_bus, **base, min_risk_reward_ratio=0.0)
+
+
+@pytest.mark.asyncio
+async def test_max_drawdown_engages_kill_switch_off_the_running_peak() -> None:
+    event_bus, risk, _ = _make_engine(
+        daily_loss_limit=1_000_000.0,  # keep the daily-loss gate out of the way
+        max_drawdown_percent=10.0,
+        clock=TestClock(datetime(2026, 1, 1, tzinfo=UTC)),
+    )
+
+    await event_bus.publish(AccountStateChanged(account_state=_account_state(10_000.0)))
+    await event_bus.publish(AccountStateChanged(account_state=_account_state(11_000.0)))
+    assert not risk.is_kill_switch_engaged()  # new peak, no drawdown yet
+
+    await event_bus.publish(AccountStateChanged(account_state=_account_state(10_500.0)))
+    assert not risk.is_kill_switch_engaged()  # ~4.5% off the 11,000 peak, under 10%
+
+    await event_bus.publish(AccountStateChanged(account_state=_account_state(9_800.0)))
+    assert risk.is_kill_switch_engaged()  # ~10.9% off the 11,000 peak
+    assert risk.kill_switch_reason is not None
+
+
+@pytest.mark.asyncio
+async def test_max_drawdown_disabled_by_default() -> None:
+    event_bus, risk, _ = _make_engine(daily_loss_limit=1_000_000.0)
+
+    await event_bus.publish(AccountStateChanged(account_state=_account_state(10_000.0)))
+    await event_bus.publish(AccountStateChanged(account_state=_account_state(1_000.0)))
+
+    assert not risk.is_kill_switch_engaged()
+
+
+def test_evaluate_correlation_passes_when_disabled() -> None:
+    _, risk, _ = _make_engine()
+
+    assert risk.evaluate_correlation(
+        "EURUSD", correlation_matrix={"EURUSD": {"GBPUSD": 0.99}}, open_symbols=["GBPUSD"]
+    )
+
+
+def test_evaluate_correlation_rejects_a_highly_correlated_open_symbol() -> None:
+    _, risk, _ = _make_engine(max_correlation=0.8)
+    matrix = {"EURUSD": {"EURUSD": 1.0, "GBPUSD": 0.9}, "GBPUSD": {"EURUSD": 0.9, "GBPUSD": 1.0}}
+
+    assert not risk.evaluate_correlation(
+        "EURUSD", correlation_matrix=matrix, open_symbols=["GBPUSD"]
+    )
+
+
+def test_evaluate_correlation_passes_a_weakly_correlated_open_symbol() -> None:
+    _, risk, _ = _make_engine(max_correlation=0.8)
+    matrix = {"EURUSD": {"EURUSD": 1.0, "USDJPY": 0.1}, "USDJPY": {"EURUSD": 0.1, "USDJPY": 1.0}}
+
+    assert risk.evaluate_correlation(
+        "EURUSD", correlation_matrix=matrix, open_symbols=["USDJPY"]
+    )
+
+
+def test_evaluate_correlation_ignores_the_symbol_itself_in_open_symbols() -> None:
+    _, risk, _ = _make_engine(max_correlation=0.8)
+    matrix = {"EURUSD": {"EURUSD": 1.0}}
+
+    assert risk.evaluate_correlation(
+        "EURUSD", correlation_matrix=matrix, open_symbols=["EURUSD"]
+    )
+
+
+def test_evaluate_correlation_passes_when_symbol_missing_from_matrix() -> None:
+    _, risk, _ = _make_engine(max_correlation=0.8)
+
+    assert risk.evaluate_correlation("EURUSD", correlation_matrix={}, open_symbols=["GBPUSD"])
+
+
+def test_evaluate_spread_passes_when_disabled() -> None:
+    _, risk, _ = _make_engine()
+
+    assert risk.evaluate_spread(10.0)
+
+
+def test_evaluate_spread_rejects_a_spread_beyond_the_maximum() -> None:
+    _, risk, _ = _make_engine(max_spread=0.0003)
+
+    assert risk.evaluate_spread(0.0002)
+    assert not risk.evaluate_spread(0.0004)
+
+
+def test_evaluate_exposure_passes_when_disabled() -> None:
+    _, risk, _ = _make_engine()
+
+    assert risk.evaluate_exposure(current_exposure=1_000.0, additional_volume=1_000.0)
+
+
+def test_evaluate_exposure_rejects_when_the_cap_would_be_exceeded() -> None:
+    _, risk, _ = _make_engine(max_exposure=1.0)
+
+    assert risk.evaluate_exposure(current_exposure=0.5, additional_volume=0.4)
+    assert not risk.evaluate_exposure(current_exposure=0.5, additional_volume=0.6)
+
+
+def test_evaluate_min_risk_reward_passes_when_disabled() -> None:
+    _, risk, _ = _make_engine()
+
+    assert risk.evaluate_min_risk_reward(None)
+    assert risk.evaluate_min_risk_reward(0.1)
+
+
+def test_evaluate_min_risk_reward_rejects_below_the_minimum_or_missing() -> None:
+    _, risk, _ = _make_engine(min_risk_reward_ratio=1.5)
+
+    assert risk.evaluate_min_risk_reward(1.5)
+    assert risk.evaluate_min_risk_reward(2.0)
+    assert not risk.evaluate_min_risk_reward(1.4)
+    assert not risk.evaluate_min_risk_reward(None)

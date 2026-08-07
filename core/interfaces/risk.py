@@ -7,7 +7,9 @@ from core.interfaces.types import OrderRequest, TradeSignal
 
 @runtime_checkable
 class SizingModel(Protocol):
-    def size(self, signal: TradeSignal, *, equity: float) -> float: ...
+    def size(
+        self, signal: TradeSignal, *, equity: float, stop_distance: float | None = None
+    ) -> float: ...
 
 
 @runtime_checkable

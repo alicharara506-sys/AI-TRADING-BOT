@@ -113,12 +113,22 @@ confidence, and this pass's `SignalFusion` weighting).
   Producing an honest expected-return number needs that feedback loop
   built first, not a plausible-looking number bolted onto `DecisionReport`
   today.
-- **`market_regime`.** No repository researched in this pass supplied a
-  real regime-classification algorithm, and the platform doesn't have one
-  either. The only regime-adjacent primitive that exists is ATR
-  (volatility magnitude) — calling that "market regime" in the trend/
-  range/crisis sense the term usually implies would overclaim what's
-  actually there.
+- **A single composite `market_regime` label.** Still not built, and still
+  deliberately so: collapsing trend + volatility + everything else into one
+  "trending/ranging/crisis"-style tag would overclaim what any of the real
+  primitives below actually establish. What *has* since been built (the
+  migration plan's Feature Engine and Signal Schema phases) are two
+  separate, honestly-computed factual readings on `DecisionReport` — never
+  one fabricated composite: `trend_tag` (ADX-confirmed direction/strength,
+  `quant/technical_analysis/momentum.py::compute_adx`) and `volatility_tag`
+  (this symbol's current volatility percentile against its own recent
+  history, `quant/technical_analysis/regime.py::compute_volatility_regime`
+  — itself documented as deliberately relative, not an absolute "regime").
+  `DecisionReport` also now carries `invalidation_level` (the nearest
+  confirmed swing level a trade's structural premise breaks at,
+  `quant/price_action/structure.py::compute_structure_invalidation_level`),
+  `take_profit_2` (a second, further risk/reward target), and
+  `risk_reward_ratio` (echoing the ratio actually used).
 
 ## Exit criteria
 

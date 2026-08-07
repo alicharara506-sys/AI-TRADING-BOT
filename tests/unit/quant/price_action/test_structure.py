@@ -5,7 +5,10 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from core.interfaces.types import Bar, Direction, MarketContext, Symbol, Timeframe
-from quant.price_action.structure import MarketStructureModule
+from quant.price_action.structure import (
+    MarketStructureModule,
+    compute_structure_invalidation_level,
+)
 
 _SYMBOL = Symbol(name="EURUSD")
 
@@ -98,3 +101,38 @@ def test_too_few_confirmed_swings_emits_no_evidence() -> None:
     module = MarketStructureModule(swing_arm=2)
 
     assert module.analyze(_context([1.0, 1.01, 1.02, 1.03, 1.04])) == []
+
+
+# -- compute_structure_invalidation_level -------------------------------------
+
+_SWING_PRICES = [
+    1.10, 1.07, 1.04, 1.00, 1.02, 1.05, 1.08, 1.11, 1.14, 1.17, 1.20, 1.18, 1.16,
+]
+
+
+def test_invalidation_level_for_a_long_is_the_last_confirmed_swing_low() -> None:
+    bars = _context(_SWING_PRICES).bars
+
+    level = compute_structure_invalidation_level(bars, Direction.LONG, swing_arm=2)
+
+    assert level == pytest.approx(1.00)
+
+
+def test_invalidation_level_for_a_short_is_the_last_confirmed_swing_high() -> None:
+    bars = _context(_SWING_PRICES).bars
+
+    level = compute_structure_invalidation_level(bars, Direction.SHORT, swing_arm=2)
+
+    assert level == pytest.approx(1.20)
+
+
+def test_invalidation_level_is_none_for_a_neutral_direction() -> None:
+    bars = _context(_SWING_PRICES).bars
+
+    assert compute_structure_invalidation_level(bars, Direction.NEUTRAL, swing_arm=2) is None
+
+
+def test_invalidation_level_is_none_without_a_confirmed_swing() -> None:
+    bars = _context([1.0, 1.01, 1.02, 1.03, 1.04]).bars
+
+    assert compute_structure_invalidation_level(bars, Direction.LONG, swing_arm=2) is None

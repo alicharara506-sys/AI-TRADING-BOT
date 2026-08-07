@@ -13,7 +13,7 @@ from core.interfaces.types import (
     Timeframe,
     TradeSignal,
 )
-from core.risk.sizing import FixedVolumeSizingModel
+from core.risk.sizing import FixedVolumeSizingModel, RiskPercentSizingModel
 from decision_engine.engine import DecisionEngine
 
 _SYMBOL = Symbol(name="EURUSD")
@@ -196,3 +196,190 @@ def test_uncertainty_reflects_the_weakest_of_multiple_contributing_modules() -> 
     report = engine.decide(signal, context, equity=10_000.0)
 
     assert report.uncertainty == "high"  # gated by the weakest module, not the strongest
+
+
+# -- Phase 5 schema expansion --------------------------------------------------
+
+
+def _trending_bars(count: int, *, up: bool) -> tuple[Bar, ...]:
+    start = datetime(2026, 1, 1, tzinfo=UTC)
+    sign = 1.0 if up else -1.0
+    return tuple(
+        Bar(
+            symbol=_SYMBOL,
+            timeframe=Timeframe.M1,
+            timestamp=start + timedelta(minutes=i),
+            open=9.5 + sign * i,
+            high=10.0 + sign * i,
+            low=9.0 + sign * i,
+            close=9.7 + sign * i,
+            volume=0.0,
+        )
+        for i in range(count)
+    )
+
+
+def _ranging_bars(count: int) -> tuple[Bar, ...]:
+    start = datetime(2026, 1, 1, tzinfo=UTC)
+    return tuple(
+        Bar(
+            symbol=_SYMBOL,
+            timeframe=Timeframe.M1,
+            timestamp=start + timedelta(minutes=i),
+            open=10.0,
+            high=10.2,
+            low=9.8,
+            close=10.0 + (0.05 if i % 2 == 0 else -0.05),
+            volume=0.0,
+        )
+        for i in range(count)
+    )
+
+
+def _range_spike_bars(ranges: list[float]) -> tuple[Bar, ...]:
+    start = datetime(2026, 1, 1, tzinfo=UTC)
+    bars = []
+    price = 100.0
+    for i, r in enumerate(ranges):
+        bars.append(
+            Bar(
+                symbol=_SYMBOL,
+                timeframe=Timeframe.M1,
+                timestamp=start + timedelta(minutes=i),
+                open=price,
+                high=price + r / 2,
+                low=price - r / 2,
+                close=price,
+                volume=0.0,
+            )
+        )
+    return tuple(bars)
+
+
+_SWING_PRICES = [
+    1.10, 1.07, 1.04, 1.00, 1.02, 1.05, 1.08, 1.11, 1.14, 1.17, 1.20, 1.18, 1.16,
+]
+
+
+def _swing_bars() -> tuple[Bar, ...]:
+    start = datetime(2026, 1, 1, tzinfo=UTC)
+    return tuple(
+        Bar(
+            symbol=_SYMBOL,
+            timeframe=Timeframe.M1,
+            timestamp=start + timedelta(minutes=i),
+            open=price,
+            high=price,
+            low=price,
+            close=price,
+            volume=0.0,
+        )
+        for i, price in enumerate(_SWING_PRICES)
+    )
+
+
+def test_new_optional_fields_default_to_none_with_insufficient_bars() -> None:
+    engine = DecisionEngine(FixedVolumeSizingModel(0.1))
+    context = MarketContext(symbol=_SYMBOL, bars=_bars(3))
+
+    report = engine.decide(_signal(Direction.LONG), context, equity=10_000.0)
+
+    assert report.take_profit_2 is None
+    assert report.risk_reward_ratio is None
+    assert report.trend_tag is None
+    assert report.volatility_tag is None
+    assert report.invalidation_level is None
+
+
+def test_take_profit_2_uses_the_configured_second_risk_reward_ratio() -> None:
+    engine = DecisionEngine(
+        FixedVolumeSizingModel(0.1),
+        atr_multiple=2.0,
+        risk_reward_ratio=1.5,
+        risk_reward_ratio_2=3.0,
+    )
+    context = MarketContext(symbol=_SYMBOL, bars=_bars())
+    entry_price = context.bars[-1].close
+
+    report = engine.decide(_signal(Direction.LONG), context, equity=10_000.0)
+
+    assert report.recommended_stop_loss is not None
+    assert report.take_profit_2 is not None
+    risk = entry_price - report.recommended_stop_loss
+    reward2 = report.take_profit_2 - entry_price
+    assert reward2 / risk == pytest.approx(3.0)
+    assert report.risk_reward_ratio == pytest.approx(1.5)
+
+
+def test_trend_tag_reflects_a_strong_uptrend() -> None:
+    engine = DecisionEngine(FixedVolumeSizingModel(0.1), adx_period=5, trend_threshold=20.0)
+    context = MarketContext(symbol=_SYMBOL, bars=_trending_bars(30, up=True))
+
+    report = engine.decide(_signal(Direction.LONG), context, equity=10_000.0)
+
+    assert report.trend_tag == "uptrend"
+
+
+def test_trend_tag_reflects_a_strong_downtrend() -> None:
+    engine = DecisionEngine(FixedVolumeSizingModel(0.1), adx_period=5, trend_threshold=20.0)
+    context = MarketContext(symbol=_SYMBOL, bars=_trending_bars(30, up=False))
+
+    report = engine.decide(_signal(Direction.SHORT), context, equity=10_000.0)
+
+    assert report.trend_tag == "downtrend"
+
+
+def test_trend_tag_is_ranging_in_a_choppy_market() -> None:
+    engine = DecisionEngine(FixedVolumeSizingModel(0.1), adx_period=5, trend_threshold=25.0)
+    context = MarketContext(symbol=_SYMBOL, bars=_ranging_bars(30))
+
+    report = engine.decide(_signal(Direction.LONG), context, equity=10_000.0)
+
+    assert report.trend_tag == "ranging"
+
+
+def test_volatility_tag_reflects_a_real_spike() -> None:
+    engine = DecisionEngine(FixedVolumeSizingModel(0.1), atr_period=2, volatility_lookback=15)
+    ranges = [1.0] * 20 + [10.0]
+    context = MarketContext(symbol=_SYMBOL, bars=_range_spike_bars(ranges))
+
+    report = engine.decide(_signal(Direction.LONG), context, equity=10_000.0)
+
+    assert report.volatility_tag == "high"
+
+
+def test_invalidation_level_uses_the_nearest_confirmed_swing() -> None:
+    engine = DecisionEngine(FixedVolumeSizingModel(0.1), structure_swing_arm=2)
+    context = MarketContext(symbol=_SYMBOL, bars=_swing_bars())
+
+    long_report = engine.decide(_signal(Direction.LONG), context, equity=10_000.0)
+    short_report = engine.decide(_signal(Direction.SHORT), context, equity=10_000.0)
+
+    assert long_report.invalidation_level == pytest.approx(1.00)
+    assert short_report.invalidation_level == pytest.approx(1.20)
+
+
+def test_position_size_receives_the_computed_stop_distance() -> None:
+    engine = DecisionEngine(RiskPercentSizingModel(0.02), atr_multiple=2.0)
+    context = MarketContext(symbol=_SYMBOL, bars=_bars())
+
+    report = engine.decide(_signal(Direction.LONG), context, equity=10_000.0)
+
+    assert report.recommended_stop_loss is not None
+    entry_price = context.bars[-1].close
+    stop_distance = entry_price - report.recommended_stop_loss
+    assert report.recommended_position_size == pytest.approx(10_000.0 * 0.02 / stop_distance)
+
+
+def test_rejects_invalid_phase5_construction_parameters() -> None:
+    sizing = FixedVolumeSizingModel(0.1)
+    with pytest.raises(ValueError, match="risk_reward_ratio_2"):
+        DecisionEngine(sizing, risk_reward_ratio_2=0.0)
+    with pytest.raises(ValueError, match="adx_period"):
+        DecisionEngine(sizing, adx_period=1)
+    with pytest.raises(ValueError, match="trend_threshold"):
+        DecisionEngine(sizing, trend_threshold=0.0)
+    with pytest.raises(ValueError, match="volatility_lookback"):
+        DecisionEngine(sizing, volatility_lookback=1)
+    with pytest.raises(ValueError, match="structure_swing_arm"):
+        DecisionEngine(sizing, structure_swing_arm=0)

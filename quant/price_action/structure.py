@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from core.interfaces.types import Direction, Evidence, MarketContext
-from quant.price_action.swings import find_all_swing_points
+from collections.abc import Sequence
+
+from core.interfaces.types import Bar, Direction, Evidence, MarketContext
+from quant.price_action.swings import find_all_swing_points, find_last_swings
 
 # Geometry-only confidence: historical win-rate-based confidence (per the
 # architecture's Analytics Engine lookup) is a later addition once that
@@ -76,4 +78,25 @@ class MarketStructureModule:
         )
 
 
-__all__ = ["MarketStructureModule"]
+def compute_structure_invalidation_level(
+    bars: Sequence[Bar], direction: Direction, *, swing_arm: int = 2
+) -> float | None:
+    """The most recent confirmed swing low (for a LONG) or swing high (for a
+    SHORT) -- the level whose break means the structural premise the trade
+    was taken on (that swing held) is invalidated, as distinct from an
+    ATR-based stop that's sized off volatility alone and may sit well
+    inside or outside where the actual market structure would call it.
+    Reuses the same swing-detection primitive Fibonacci confluence and
+    this module's own BOS/CHOCH logic already use. None if no swing of the
+    relevant kind has been confirmed yet, or `direction` is NEUTRAL (an
+    invalidation level presupposes a directional trade).
+    """
+    low_index, high_index = find_last_swings(bars, arm=swing_arm)
+    if direction is Direction.LONG:
+        return bars[low_index].low if low_index is not None else None
+    if direction is Direction.SHORT:
+        return bars[high_index].high if high_index is not None else None
+    return None
+
+
+__all__ = ["MarketStructureModule", "compute_structure_invalidation_level"]
