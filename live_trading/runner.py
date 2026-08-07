@@ -134,8 +134,8 @@ class LiveRunner:
             on_preflight_complete(report, trade_returns)
         if not report.passed:
             raise LiveRunnerError(
-                f"Refusing to trade live: validation failed ({report.failure_summary()}). "
-                f"Trade returns observed against real history: {trade_returns}"
+                f"Refusing to trade live: validation failed ({report.failure_summary()}) "
+                f"against {len(trade_returns)} trades observed in real history."
             )
 
         order_manager = OrderManager(self._event_bus)

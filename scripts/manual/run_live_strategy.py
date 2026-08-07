@@ -155,7 +155,16 @@ async def main() -> None:
     )
 
     def _on_preflight_complete(report: ValidationReport, trade_returns: list[float]) -> None:
-        print(f"Trade returns observed in history: {trade_returns}")
+        if trade_returns:
+            wins = sum(1 for r in trade_returns if r > 0)
+            print(
+                f"Trade history: {len(trade_returns)} trades, "
+                f"{wins} winners ({100 * wins / len(trade_returns):.0f}%), "
+                f"net {sum(trade_returns):+.5f}, "
+                f"best {max(trade_returns):+.5f}, worst {min(trade_returns):+.5f}"
+            )
+        else:
+            print("Trade history: 0 trades (no crossovers occurred in the fetched bars)")
         if report.passed:
             print(f"\nValidation PASSED for {config.symbol.canonical}. Starting live trading.")
             print("Press Ctrl+C to stop.\n")
