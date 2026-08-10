@@ -79,4 +79,68 @@ class RecordedTrade(Base):
     profit: Mapped[float] = mapped_column(Float)
 
 
-__all__ = ["Base", "RecordedAccountSnapshot", "RecordedBar", "RecordedSignal", "RecordedTrade"]
+class RecordedOutcome(Base):
+    """One SignalLifecycleTracker-tracked SignalOutcome (live_tracking/types.py),
+    persisted so it survives a dashboard/feed restart and so OutcomeAnalytics
+    can query resolved history that outlives the tracker's own in-memory
+    state. The primary key is the SignalOutcome's own id (a string), not an
+    autoincrement surrogate, so `save_outcome` can upsert the same row
+    repeatedly as a tracked signal's live state changes.
+    """
+
+    __tablename__ = "recorded_outcomes"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    symbol: Mapped[str] = mapped_column(String, index=True)
+    direction: Mapped[str] = mapped_column(String)
+    strategy_name: Mapped[str] = mapped_column(String)
+    entry_price: Mapped[float] = mapped_column(Float)
+    trigger_price: Mapped[float | None] = mapped_column(Float)
+    stop_loss: Mapped[float] = mapped_column(Float)
+    take_profit_1: Mapped[float] = mapped_column(Float)
+    take_profit_2: Mapped[float | None] = mapped_column(Float)
+    take_profit_3: Mapped[float | None] = mapped_column(Float)
+    pip_size: Mapped[float] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String, index=True)
+    highest_pips: Mapped[float] = mapped_column(Float)
+    lowest_pips: Mapped[float] = mapped_column(Float)
+    final_pips: Mapped[float | None] = mapped_column(Float)
+    achieved_risk_reward: Mapped[float | None] = mapped_column(Float)
+    score_at_generation: Mapped[float] = mapped_column(Float)
+    uncertainty_at_generation: Mapped[str] = mapped_column(String)
+    regime_at_generation: Mapped[str | None] = mapped_column(String)
+    sentiment_at_generation: Mapped[float | None] = mapped_column(Float)
+    ml_probability_at_generation: Mapped[float | None] = mapped_column(Float)
+    timestamp_generated: Mapped[datetime] = mapped_column(DateTime, index=True)
+    timestamp_triggered: Mapped[datetime | None] = mapped_column(DateTime)
+    timestamp_resolved: Mapped[datetime | None] = mapped_column(DateTime, index=True)
+    hit_target: Mapped[str | None] = mapped_column(String)
+    user_note: Mapped[str | None] = mapped_column(Text)
+    user_reactions_json: Mapped[str] = mapped_column(Text)
+
+
+class RecordedOutcomeSample(Base):
+    """A throttled live-price sample for one RecordedOutcome, used only to
+    redraw the Royal-Pips-style live tracker bar's price path -- kept in its
+    own table (rather than a JSON blob column on RecordedOutcome) so the
+    high-frequency append doesn't require reading/rewriting the whole
+    outcome row on every tick.
+    """
+
+    __tablename__ = "recorded_outcome_samples"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    outcome_id: Mapped[str] = mapped_column(String, index=True)
+    price: Mapped[float] = mapped_column(Float)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, index=True)
+
+
+__all__ = [
+    "Base",
+    "RecordedAccountSnapshot",
+    "RecordedBar",
+    "RecordedOutcome",
+    "RecordedOutcomeSample",
+    "RecordedSignal",
+    "RecordedTrade",
+]
