@@ -107,4 +107,5 @@ include = [
     "database*",
     "macro_data*",
     "cot_data*",
+    "live_tracking*",
 ]

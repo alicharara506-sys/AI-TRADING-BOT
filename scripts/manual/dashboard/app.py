@@ -36,6 +36,10 @@ from quant.price_action.structure import MarketStructureModule
 from quant.price_action.swings import find_last_swings
 from quant.technical_analysis.volume_profile import compute_volume_profile
 from reporting.performance_report import PerformanceReport
+from scripts.manual.dashboard.live_signals import (
+    render_live_signals_tab,
+    render_outcome_analytics_tab,
+)
 
 _FIB_RATIOS = (0.0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0)
 
@@ -361,7 +365,13 @@ def main() -> None:
     _render_chart(repository, args.symbol, args.timeframe)
     st.divider()
 
-    tab_journal, tab_performance = st.tabs(["Trade journal", "Performance"])
+    tab_live, tab_analytics, tab_journal, tab_performance = st.tabs(
+        ["Live Signals", "Outcome Analytics", "Trade journal", "Performance"]
+    )
+    with tab_live:
+        render_live_signals_tab(repository, args.symbol)
+    with tab_analytics:
+        render_outcome_analytics_tab(repository)
     with tab_journal:
         _render_trade_journal(repository)
     with tab_performance:
