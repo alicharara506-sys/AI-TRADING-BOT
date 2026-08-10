@@ -112,6 +112,7 @@ class SignalLifecycleTracker:
             regime_at_generation=regime,
             sentiment_at_generation=sentiment,
             ml_probability_at_generation=ml_probability,
+            status=OutcomeStatus.PENDING if trigger_price is not None else OutcomeStatus.ACTIVE,
         )
         self._open[outcome.id] = outcome
         self._repository.save_outcome(outcome)

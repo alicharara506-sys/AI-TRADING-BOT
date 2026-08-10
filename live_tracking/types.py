@@ -104,8 +104,6 @@ class SignalOutcome:
     def __post_init__(self) -> None:
         if self.pip_size <= 0:
             raise ValueError("pip_size must be > 0")
-        if self.trigger_price is not None:
-            self.status = OutcomeStatus.PENDING
 
     @property
     def planned_risk_reward(self) -> float | None:
