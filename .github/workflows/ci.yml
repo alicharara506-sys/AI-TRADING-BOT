@@ -18,7 +18,7 @@ jobs:
       - name: Ruff
         run: ruff check .
       - name: Mypy
-        run: mypy core connectors execution_backends strategies quant backtesting optimization machine_learning analytics reporting notifications benchmarks research_lab news_intelligence decision_engine live_trading database macro_data cot_data
+        run: mypy core connectors execution_backends strategies quant backtesting optimization machine_learning analytics reporting notifications benchmarks research_lab news_intelligence decision_engine live_trading database macro_data cot_data live_tracking
       - name: Import direction check
         run: python scripts/check_import_direction.py
       - name: Pytest
