@@ -121,3 +121,20 @@ def test_add_reaction_raises_for_unknown_outcome() -> None:
     repository = _repository()
     with pytest.raises(ValueError):
         repository.add_reaction("missing", "fire")
+
+
+def test_set_user_note_updates_the_note() -> None:
+    repository = _repository()
+    repository.save_outcome(_outcome())
+
+    repository.set_user_note("o1", "watching for a retest of entry")
+
+    row = repository.get_outcome("o1")
+    assert row is not None
+    assert row.user_note == "watching for a retest of entry"
+
+
+def test_set_user_note_raises_for_unknown_outcome() -> None:
+    repository = _repository()
+    with pytest.raises(ValueError):
+        repository.set_user_note("missing", "note")

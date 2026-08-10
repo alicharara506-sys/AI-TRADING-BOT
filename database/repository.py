@@ -73,6 +73,8 @@ class SignalRepository(Protocol):
 
     def add_reaction(self, outcome_id: str, reaction: str) -> None: ...
 
+    def set_user_note(self, outcome_id: str, note: str) -> None: ...
+
 
 class SqliteSignalRepository:
     """SignalRepository backed by a SQLite file (or `sqlite:///:memory:` for
@@ -316,6 +318,14 @@ class SqliteSignalRepository:
             reactions = json.loads(row.user_reactions_json)
             reactions.append(reaction)
             row.user_reactions_json = json.dumps(reactions)
+            session.commit()
+
+    def set_user_note(self, outcome_id: str, note: str) -> None:
+        with Session(self._engine) as session:
+            row = session.get(RecordedOutcome, outcome_id)
+            if row is None:
+                raise ValueError(f"no recorded outcome with id '{outcome_id}'")
+            row.user_note = note
             session.commit()
 
 
