@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from core.interfaces.types import Bar, Symbol, Timeframe
-from quant.technical_analysis.regime import compute_volatility_regime
+from quant.technical_analysis.regime import compute_atr_percentile_rank, compute_volatility_regime
 
 _SYMBOL = Symbol(name="EURUSD")
 
@@ -75,3 +75,35 @@ def test_classifies_constant_volatility_as_normal() -> None:
     regime = compute_volatility_regime(bars, atr_period=2, lookback=15)
 
     assert regime == "normal"
+
+
+def test_atr_percentile_rank_rejects_invalid_parameters() -> None:
+    bars = _bars_from_ranges([1.0] * 30)
+    with pytest.raises(ValueError):
+        compute_atr_percentile_rank(bars, atr_period=1)
+    with pytest.raises(ValueError):
+        compute_atr_percentile_rank(bars, lookback=1)
+
+
+def test_atr_percentile_rank_is_none_with_insufficient_bars() -> None:
+    bars = _bars_from_ranges([1.0] * 10)
+
+    assert compute_atr_percentile_rank(bars, atr_period=5, lookback=10) is None
+
+
+def test_atr_percentile_rank_is_high_after_a_volatility_spike() -> None:
+    ranges = [1.0] * 20 + [10.0]
+    bars = _bars_from_ranges(ranges)
+
+    rank = compute_atr_percentile_rank(bars, atr_period=2, lookback=15)
+
+    assert rank is not None
+    assert rank >= 67.0
+
+
+def test_atr_percentile_rank_is_fifty_for_constant_volatility() -> None:
+    bars = _bars_from_ranges([1.0] * 30)
+
+    rank = compute_atr_percentile_rank(bars, atr_period=2, lookback=15)
+
+    assert rank == pytest.approx(50.0)
