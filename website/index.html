@@ -1,0 +1,1765 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DAR Trading &amp; Contracting</title>
+<meta name="description" content="Results first, payment follows. DAR Trading &amp; Contracting delivers full-service construction, finishing and trades in Beirut, Lebanon — paid on verified progress, never in advance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ============================================================
+   DAR TRADING & CONTRACTING — design tokens
+   Palette: basalt ink / kraft paper / hazard orange / cool steel.
+   The steel neutral exists so the site has a material to set
+   against the warm paper — concrete and drawings, not just brand
+   colour on a page.
+   ============================================================ */
+:root{
+  color-scheme:light;
+  --ink:#15130f;
+  --charcoal:#2b2723;
+  --steel:#5b6570;
+  --steel-line:rgba(91,101,112,.28);
+  --orange:#d94f1e;
+  --orange-deep:#a8380f;
+  --orange-soft:rgba(217,79,30,.13);
+  --paper:#f2eee3;
+  --paper-line:#e1d9c7;
+  --white:#ffffff;
+  --hairline:#e7e2d6;
+  --ink-muted:#6b6459;
+  --white-muted:rgba(255,255,255,.55);
+  --white-faint:rgba(255,255,255,.32);
+
+  --font-display:'Big Shoulders Display',Impact,'Arial Narrow Bold',sans-serif;
+  --font-en:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-ar:'Cairo','Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  --wrap:1180px;
+  --gap:3px;
+  --s1:8px; --s2:16px; --s3:24px; --s4:32px; --s5:48px; --s6:64px; --s7:96px;
+
+  --ease-out:cubic-bezier(.25,.46,.45,.94);
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;} }
+
+body{
+  margin:0;
+  background:var(--white);
+  color:var(--ink);
+  font-family:var(--font-en);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+[data-lang="ar"]{ font-family:var(--font-ar); }
+[data-lang="ar"] .mono{ direction:ltr; unicode-bidi:isolate; display:inline-block; }
+
+img,svg{ display:block; max-width:100%; }
+a{ color:inherit; text-decoration:none; }
+h1,h2,h3{ margin:0; text-wrap:balance; }
+p{ margin:0; }
+button{ font-family:inherit; }
+
+.icon{ width:26px; height:26px; fill:currentColor; flex-shrink:0; }
+.mono{ font-family:var(--font-mono); letter-spacing:.06em; }
+
+.skip-link{
+  position:absolute; left:12px; top:-48px; z-index:999;
+  background:var(--ink); color:#fff; padding:12px 18px; font-size:13px; font-weight:600;
+  transition:top .18s var(--ease-out);
+}
+.skip-link:focus{ top:12px; }
+
+:focus-visible{ outline:2px solid var(--orange); outline-offset:3px; }
+button,a[href]{ cursor:pointer; }
+
+/* ---------- staggered scroll reveal ---------- */
+.stagger > *{
+  opacity:0; transform:translateY(20px);
+  transition:opacity .5s var(--ease-out), transform .5s var(--ease-out);
+}
+.stagger.in > *{ opacity:1; transform:none; }
+.stagger > *:nth-child(1){ transition-delay:0ms; }
+.stagger > *:nth-child(2){ transition-delay:70ms; }
+.stagger > *:nth-child(3){ transition-delay:140ms; }
+.stagger > *:nth-child(4){ transition-delay:210ms; }
+.stagger > *:nth-child(5){ transition-delay:280ms; }
+.stagger > *:nth-child(6){ transition-delay:350ms; }
+.stagger > *:nth-child(7){ transition-delay:420ms; }
+.stagger > *:nth-child(n+8){ transition-delay:480ms; }
+
+.reveal{ opacity:0; transform:translateY(16px); transition:opacity .55s var(--ease-out),transform .55s var(--ease-out); }
+.reveal.in{ opacity:1; transform:none; }
+
+/* ---------- shared layout helpers ---------- */
+.wrap{ max-width:var(--wrap); margin:0 auto; padding:0 28px; }
+@media (max-width:640px){ .wrap{ padding:0 20px; } }
+.page[hidden]{ display:none; }
+
+/* ---------- dimension line: a blueprint measurement rule ---------- */
+.dim{ position:relative; height:1px; background:currentColor; opacity:.3; }
+.dim::before,.dim::after{ content:''; position:absolute; top:-4px; width:1px; height:9px; background:currentColor; }
+.dim::before{ left:0; } .dim::after{ right:0; }
+
+/* ---------- LOGO MARK (plumb + level) ---------- */
+.mark{ display:inline-flex; align-items:flex-start; flex-shrink:0; }
+.mark .circle{ border-radius:50%; border-style:solid; flex-shrink:0; }
+.mark .vline{ flex-shrink:0; }
+.mark .word{ font-family:var(--font-display); font-weight:800; line-height:.86; letter-spacing:-.5px; }
+.mark .tag{ font-family:var(--font-en); font-size:6.5px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; opacity:.6; white-space:nowrap; }
+.mark-wrap{ display:inline-flex; flex-direction:column; }
+
+.nav-mark .circle{ width:9px; height:9px; border-width:1.5px; margin-top:4px; margin-right:6px; }
+.nav-mark .vline{ width:2px; height:29px; }
+.nav-mark .word{ font-size:24px; }
+.nav-mark .tag{ margin-top:2px; }
+[data-lang="ar"] .nav-mark .circle{ margin-right:0; margin-left:6px; }
+
+.foot-mark .circle{ width:9px; height:9px; border-width:1.5px; margin-top:4px; margin-right:6px; border-color:var(--orange); }
+.foot-mark .vline{ width:2px; height:29px; background:var(--orange); }
+.foot-mark .word{ font-size:24px; color:#fff; }
+.foot-mark .tag{ margin-top:2px; color:var(--white-muted); }
+[data-lang="ar"] .foot-mark .circle{ margin-right:0; margin-left:6px; }
+
+/* ============================================================
+   LANGUAGE SWITCH
+   ============================================================ */
+.lang-bar{
+  position:sticky; top:0; z-index:200;
+  background:var(--ink); height:38px;
+  display:flex; align-items:center; justify-content:flex-end;
+  padding:0 20px; gap:2px;
+}
+.lang-bar button{
+  border:none; background:transparent; color:var(--white-muted);
+  font-size:10px; letter-spacing:.12em; font-weight:600; font-family:var(--font-en);
+  padding:9px 13px; min-height:32px; border-radius:999px; transition:background .18s,color .18s;
+}
+.lang-bar button:hover{ color:#fff; }
+.lang-bar button[aria-pressed="true"]{ background:var(--orange); color:#fff; }
+
+/* ============================================================
+   CHAPTER PROGRESS RAIL — reads as a blueprint tick scale
+   ============================================================ */
+.chapter-rail{
+  position:fixed; top:50%; left:22px; transform:translateY(-50%); z-index:150;
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+}
+[data-lang="ar"] .chapter-rail{ left:auto; right:22px; }
+@media (max-width:1140px){ .chapter-rail{ display:none; } }
+.chapter-rail a{ position:relative; display:flex; align-items:center; justify-content:center; width:22px; height:24px; }
+.chapter-rail .dot{ width:9px; height:1.5px; background:rgba(91,101,112,.45); transition:background .25s,width .25s; flex-shrink:0; }
+.chapter-rail a.active .dot{ background:var(--orange); width:16px; }
+.chapter-rail::before{ content:''; position:absolute; top:12px; bottom:12px; left:50%; width:1px; background:var(--steel-line); z-index:-1; transform:translateX(-50%); }
+.chapter-rail .rail-label{
+  position:absolute; left:calc(100% + 12px); top:50%; transform:translateY(-50%);
+  font-family:var(--font-mono); font-size:10px; font-weight:500; letter-spacing:.04em;
+  color:var(--ink); background:#fff; padding:5px 10px; border:1px solid var(--hairline);
+  white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .15s;
+}
+[data-lang="ar"] .chapter-rail .rail-label{ left:auto; right:calc(100% + 12px); }
+.chapter-rail a:hover .rail-label,.chapter-rail a:focus-visible .rail-label{ opacity:1; }
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav{
+  position:sticky; top:38px; z-index:100;
+  background:rgba(242,238,227,.86); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--hairline);
+}
+.nav-inner{ position:relative; display:flex; align-items:center; justify-content:space-between; padding:14px 28px; gap:24px; }
+.nav-links{ display:flex; align-items:center; gap:28px; list-style:none; margin:0; padding:0; }
+.nav-links a{ font-size:12.5px; font-weight:500; letter-spacing:.02em; color:var(--ink); opacity:.72; transition:opacity .15s; }
+.nav-links a:hover{ opacity:1; }
+.nav-cta{
+  display:inline-flex; align-items:center; min-height:44px;
+  font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  background:var(--ink); color:#fff; padding:0 18px; border-radius:1px; white-space:nowrap;
+  transition:background .18s;
+}
+.nav-cta:hover{ background:var(--orange); }
+.nav-toggle{ display:none; border:none; background:none; padding:6px; flex-shrink:0; }
+.nav-toggle span{ display:block; width:20px; height:2px; background:var(--ink); margin:4px 0; transition:transform .2s,opacity .2s; }
+.nav-toggle[aria-expanded="true"] span:nth-child(1){ transform:translateY(6px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+.nav-toggle[aria-expanded="true"] span:nth-child(3){ transform:translateY(-6px) rotate(-45deg); }
+@media (max-width:860px){
+  .nav-links{
+    display:none; position:absolute; top:100%; inset-inline:0;
+    flex-direction:column; align-items:flex-start; gap:2px;
+    background:var(--paper); border-bottom:1px solid var(--hairline);
+    padding:8px 28px 18px; box-shadow:0 12px 24px rgba(0,0,0,.06);
+  }
+  .nav-links.open{ display:flex; }
+  .nav-links a{ display:block; padding:10px 0; width:100%; opacity:.8; }
+  .nav-cta{ display:none; }
+  .nav-toggle{ display:block; }
+}
+
+/* ============================================================
+   HERO — a site elevation, not floating rings
+   ============================================================ */
+.hero{
+  position:relative; background:var(--ink); color:#fff; overflow:hidden;
+  padding:112px 0 88px;
+  min-height:86vh; display:flex; flex-direction:column; justify-content:center;
+}
+.hero-grid-bg{
+  position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background-image:
+    linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 70%,transparent);
+}
+.hero-inner{ position:relative; z-index:1; width:100%; }
+.hero-grid{ display:grid; grid-template-columns:1.15fr .85fr; gap:24px; align-items:center; }
+@media (max-width:960px){ .hero-grid{ grid-template-columns:1fr; } .hero-visual{ display:none; } }
+
+.hero-eyebrow{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.2em; color:var(--white-muted); font-weight:500;
+  display:flex; align-items:center; gap:14px; margin-bottom:32px; text-transform:uppercase;
+}
+.hero-eyebrow::after{ content:''; flex:1; max-width:64px; height:1px; background:rgba(255,255,255,.2); }
+.hero h1{
+  font-family:var(--font-display);
+  font-size:clamp(46px,7.6vw,96px); font-weight:800; letter-spacing:-1px; line-height:.92; text-transform:uppercase;
+  margin-bottom:26px;
+}
+.hero h1 em{ font-style:normal; color:var(--orange); }
+[data-lang="ar"] .hero h1{ letter-spacing:0; font-weight:700; line-height:1.18; text-transform:none; font-family:var(--font-ar); font-size:clamp(34px,6vw,60px); }
+.hero-sub{ max-width:540px; font-size:17.5px; line-height:1.75; color:rgba(255,255,255,.72); margin-bottom:40px; }
+[data-lang="ar"] .hero-sub{ font-size:18px; line-height:2; }
+.hero-actions{ display:flex; flex-wrap:wrap; gap:14px; margin-bottom:52px; }
+.hero-stats{ display:grid; grid-template-columns:repeat(4,auto); gap:36px; margin-bottom:40px; }
+@media (max-width:640px){ .hero-stats{ grid-template-columns:repeat(2,1fr); gap:24px 32px; } }
+.hero-stat b{ display:block; font-family:var(--font-display); font-size:30px; font-weight:800; color:var(--orange); letter-spacing:0; line-height:1; }
+.hero-stat span{ display:block; font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; color:var(--white-faint); margin-top:8px; font-weight:500; text-transform:uppercase; line-height:1.4; }
+.btn{
+  display:inline-flex; align-items:center; gap:10px; font-size:13px; font-weight:600; letter-spacing:.04em;
+  padding:15px 26px; border-radius:1px; transition:transform .18s var(--ease-out),background .18s,color .18s,border-color .18s;
+}
+.btn-primary{ background:var(--orange); color:#fff; }
+.btn-primary:hover{ background:var(--orange-deep); transform:translateY(-1px); }
+.btn-ghost{ border:1px solid rgba(255,255,255,.28); color:#fff; }
+.btn-ghost:hover{ border-color:#fff; transform:translateY(-1px); }
+.hero-strap{
+  display:flex; flex-wrap:wrap; gap:10px 28px; align-items:center;
+  font-family:var(--font-mono); font-size:10.5px; letter-spacing:.14em; color:var(--white-faint); font-weight:500;
+  border-top:1px solid rgba(255,255,255,.12); padding-top:26px;
+}
+.hero-strap b{ color:rgba(255,255,255,.62); font-weight:500; }
+
+/* elevation drawing: a simple massed structure with dimension callouts */
+.hero-visual{ position:relative; height:420px; display:flex; align-items:center; justify-content:center; }
+.hero-elevation{ position:relative; z-index:1; width:100%; max-width:340px; color:rgba(255,255,255,.9); }
+.hero-elevation .fill{ fill:rgba(217,79,30,.1); }
+.hero-elevation .stroke{ fill:none; stroke:currentColor; stroke-width:1.4; }
+.hero-elevation .stroke-orange{ fill:none; stroke:var(--orange); stroke-width:1.6; }
+.hero-elevation .tick{ stroke:rgba(255,255,255,.35); stroke-width:1; }
+.hero-elevation .callout{ font-family:var(--font-mono); font-size:8.5px; fill:var(--white-faint); letter-spacing:.05em; }
+
+/* ============================================================
+   PROCESS — how payment works (blueprint milestone diagram)
+   ============================================================ */
+.process{ background:var(--paper); border-top:1px solid var(--paper-line); border-bottom:1px solid var(--paper-line); padding:76px 0; position:relative; overflow:hidden; }
+.process-head{ max-width:640px; margin-bottom:52px; }
+.process-eyebrow{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.2em; color:var(--orange); font-weight:500; text-transform:uppercase; margin-bottom:14px; display:block; }
+.process-head h2{ font-family:var(--font-display); font-size:clamp(28px,4vw,44px); font-weight:800; letter-spacing:-.5px; line-height:1.02; text-transform:uppercase; margin-bottom:14px; }
+[data-lang="ar"] .process-head h2{ text-transform:none; letter-spacing:0; font-weight:700; line-height:1.3; }
+.process-head p{ font-size:15px; line-height:1.7; color:var(--ink-muted); }
+[data-lang="ar"] .process-head p{ line-height:2; }
+
+.process-track{ position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:var(--gap); }
+@media (max-width:760px){ .process-track{ grid-template-columns:1fr; } }
+.process-step{ background:#fff; border:1px solid var(--hairline); padding:26px 22px 22px; position:relative; }
+.process-step .n{ font-family:var(--font-mono); font-size:11px; color:var(--orange); font-weight:600; }
+.process-step .dim{ margin:16px 0; color:var(--steel); }
+.process-step h3{ font-size:15px; font-weight:700; margin-bottom:8px; letter-spacing:-.1px; }
+.process-step p{ font-size:12.5px; line-height:1.65; color:#57534a; margin-bottom:16px; min-height:66px; }
+[data-lang="ar"] .process-step p{ line-height:1.95; min-height:0; }
+.process-chip{ display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--orange); background:var(--orange-soft); padding:6px 10px; }
+.process-chip .icon{ width:12px; height:12px; }
+.process-connector{ display:none; }
+@media (min-width:761px){
+  .process-step:not(:last-child)::after{
+    content:''; position:absolute; top:50%; right:calc(var(--gap) * -1 - 1px); transform:translateY(-50%);
+    width:calc(var(--gap) + 2px); height:1px; background:var(--steel-line);
+  }
+  [data-lang="ar"] .process-step:not(:last-child)::after{ right:auto; left:calc(var(--gap) * -1 - 1px); }
+}
+
+/* ============================================================
+   CHAPTER (numbered section shell, shared by 01–06)
+   ============================================================ */
+.chapter{ padding:96px 0; }
+.chapter-head{ display:flex; align-items:center; gap:20px; margin-bottom:48px; }
+.chapter-eyebrow{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.2em; color:var(--orange); font-weight:500; white-space:nowrap; text-transform:uppercase; }
+.chapter-rule{ flex:1; height:1px; background:var(--hairline); }
+.chapter-num{ font-family:var(--font-mono); font-size:10px; color:var(--ink-muted); letter-spacing:.05em; }
+.chapter-kicker{ font-family:var(--font-mono); font-size:11px; letter-spacing:.16em; color:var(--ink-muted); font-weight:500; margin-bottom:14px; text-transform:uppercase; }
+.chapter h2{ font-family:var(--font-display); font-size:clamp(30px,4.4vw,52px); font-weight:800; letter-spacing:-.5px; line-height:1; max-width:780px; text-transform:uppercase; }
+[data-lang="ar"] .chapter h2{ letter-spacing:0; font-weight:700; line-height:1.32; text-transform:none; font-family:var(--font-ar); font-size:clamp(24px,3.6vw,40px); }
+
+.on-dark{ background:var(--ink); color:#fff; }
+.on-dark .chapter-num,.on-dark .chapter-eyebrow{ color:rgba(217,79,30,.85); }
+.on-dark .chapter-rule{ background:rgba(255,255,255,.12); }
+.on-dark .chapter-kicker{ color:var(--white-muted); }
+.on-paper{ background:var(--paper); }
+.on-paper .chapter-rule{ background:var(--paper-line); }
+
+/* ============================================================
+   01 — STORY
+   ============================================================ */
+.story-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:64px; align-items:start; }
+@media (max-width:860px){ .story-grid{ grid-template-columns:1fr; gap:40px; } }
+.story-copy{ font-size:16px; line-height:1.9; color:#3a3630; max-width:60ch; }
+[data-lang="ar"] .story-copy{ font-size:17px; line-height:2.1; }
+.story-copy + .story-copy{ margin-top:20px; }
+.story-callout{
+  background:var(--ink); color:#fff; padding:40px 36px; position:relative; overflow:hidden;
+}
+.story-callout .mark{ margin-bottom:22px; }
+.story-callout .circle{ width:16px; height:16px; border:2.5px solid var(--orange); margin-top:3px; margin-right:8px; }
+[data-lang="ar"] .story-callout .circle{ margin-right:0; margin-left:8px; }
+.story-callout .vline{ width:4px; height:60px; background:var(--orange); }
+.story-callout p{ position:relative; font-size:15px; line-height:1.85; color:rgba(255,255,255,.8); }
+[data-lang="ar"] .story-callout p{ line-height:2.05; }
+
+/* ============================================================
+   02 — MISSION / VISION / VALUES
+   ============================================================ */
+.mv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); margin-bottom:var(--gap); }
+@media (max-width:760px){ .mv-grid{ grid-template-columns:1fr; } }
+.mv-card{ background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); padding:40px; }
+.mv-label{ font-family:var(--font-mono); font-size:10px; letter-spacing:.18em; color:var(--orange); font-weight:500; margin-bottom:16px; text-transform:uppercase; }
+.mv-card h3{ font-size:23px; font-weight:700; letter-spacing:-.3px; margin-bottom:16px; line-height:1.25; }
+[data-lang="ar"] .mv-card h3{ letter-spacing:0; line-height:1.45; }
+.mv-card p{ font-size:14.5px; line-height:1.8; color:rgba(255,255,255,.62); }
+[data-lang="ar"] .mv-card p{ line-height:2; }
+
+.values-row{ display:grid; grid-template-columns:repeat(5,1fr); gap:var(--gap); margin-bottom:var(--gap); }
+@media (max-width:760px){ .values-row{ grid-template-columns:repeat(2,1fr); } }
+.value-chip{ border:1px solid rgba(255,255,255,.1); padding:26px 18px; text-align:center; }
+.value-chip .en{ font-size:13px; font-weight:600; letter-spacing:.03em; color:#fff; }
+.value-chip .native{ font-size:11px; color:var(--white-muted); margin-top:6px; }
+
+.promise{ background:var(--orange); padding:44px 40px; text-align:center; }
+.promise p{ font-family:var(--font-display); font-size:clamp(19px,2.7vw,28px); font-weight:700; line-height:1.35; color:#fff; max-width:820px; margin:0 auto; letter-spacing:-.2px; }
+[data-lang="ar"] .promise p{ line-height:1.75; font-family:var(--font-ar); font-weight:700; }
+
+/* ============================================================
+   03 — SERVICES
+   ============================================================ */
+.svc-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--gap); margin-bottom:56px; }
+@media (max-width:860px){ .svc-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:560px){ .svc-grid{ grid-template-columns:1fr; } }
+.svc-card{ border:1px solid var(--hairline); padding:32px 28px; background:#fff; }
+.svc-card .icon{ width:30px; height:30px; color:var(--orange); margin-bottom:20px; }
+.svc-card h3{ font-size:16.5px; font-weight:700; margin-bottom:6px; }
+.svc-card .native{ font-size:12px; color:var(--ink-muted); margin-bottom:14px; }
+.svc-card p{ font-size:13.5px; line-height:1.75; color:#555; }
+[data-lang="ar"] .svc-card p{ line-height:2; }
+.svc-tags{ display:flex; flex-wrap:wrap; gap:6px; }
+.svc-tag{ font-size:11px; color:#555; background:var(--paper); padding:5px 10px; }
+
+.mgmt{ display:grid; grid-template-columns:1.4fr 1fr; gap:var(--gap); margin-bottom:56px; }
+@media (max-width:760px){ .mgmt{ grid-template-columns:1fr; } }
+.mgmt-main{ background:var(--ink); color:#fff; padding:40px; }
+.mgmt-main .icon{ width:30px; height:30px; color:var(--orange); margin-bottom:20px; }
+.mgmt-main h3{ font-size:22px; font-weight:700; margin-bottom:14px; letter-spacing:-.3px; }
+.mgmt-main p{ font-size:14.5px; line-height:1.85; color:rgba(255,255,255,.62); max-width:52ch; }
+.mgmt-trades{ display:flex; flex-direction:column; gap:var(--gap); }
+.mgmt-trade{ flex:1; border:1px solid var(--hairline); padding:18px 22px; display:flex; align-items:center; gap:14px; }
+.mgmt-trade .icon{ width:20px; height:20px; color:var(--orange); }
+.mgmt-trade span{ font-size:13.5px; font-weight:600; }
+
+.trades-label{ font-family:var(--font-mono); font-size:10px; letter-spacing:.16em; color:var(--orange); font-weight:500; margin-bottom:14px; text-transform:uppercase; }
+.trades-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:var(--gap); }
+@media (max-width:760px){ .trades-grid{ grid-template-columns:repeat(3,1fr); } }
+@media (max-width:480px){ .trades-grid{ grid-template-columns:repeat(2,1fr); } }
+.trade-cell{ border:1px solid var(--hairline); padding:22px 14px; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
+.trade-cell .icon{ width:24px; height:24px; color:var(--ink); }
+.trade-cell .en{ font-size:11.5px; font-weight:600; }
+.trade-cell .native{ font-size:10px; color:var(--ink-muted); }
+
+/* ============================================================
+   BILLBOARD
+   ============================================================ */
+.billboard{ background:var(--ink); color:#fff; padding:96px 0; position:relative; overflow:hidden; }
+.billboard::before{
+  content:''; position:absolute; inset:0; opacity:.5; pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse at center,#000,transparent 75%);
+}
+.billboard-text{ position:relative; font-family:var(--font-display); font-size:clamp(30px,5.4vw,64px); font-weight:800; letter-spacing:-1px; line-height:1.06; max-width:1020px; text-transform:uppercase; }
+.billboard-text em{ font-style:normal; color:var(--orange); }
+[data-lang="ar"] .billboard-text{ letter-spacing:0; line-height:1.5; font-weight:700; text-transform:none; font-family:var(--font-ar); font-size:clamp(24px,4.2vw,42px); }
+
+/* ============================================================
+   04 — WHY DAR
+   ============================================================ */
+.stance-grid{ display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); margin-bottom:var(--gap); }
+@media (max-width:760px){ .stance-grid{ grid-template-columns:1fr; } }
+.stance{ padding:40px 36px; }
+.stance-believe{ background:var(--ink); color:#fff; }
+.stance-refuse{ background:var(--charcoal); color:#fff; }
+.stance-label{ font-family:var(--font-mono); font-size:11px; letter-spacing:.16em; font-weight:500; margin-bottom:22px; text-transform:uppercase; }
+.stance-believe .stance-label{ color:var(--orange); }
+.stance-refuse .stance-label{ color:rgba(255,255,255,.5); }
+.stance ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:16px; }
+.stance li{ display:flex; gap:14px; font-size:14px; line-height:1.6; color:rgba(255,255,255,.82); }
+[data-lang="ar"] .stance li{ line-height:1.9; }
+.stance li .mark-sym{ flex-shrink:0; font-family:var(--font-mono); font-size:13px; margin-top:2px; }
+.stance-believe .mark-sym{ color:var(--orange); }
+.stance-refuse .mark-sym{ color:rgba(255,255,255,.4); }
+
+.principles-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--gap); }
+@media (max-width:760px){ .principles-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:480px){ .principles-grid{ grid-template-columns:1fr; } }
+.principle{ border:1px solid var(--hairline); padding:30px 26px; background:#fff; }
+.principle .num{ font-family:var(--font-mono); font-size:12px; color:var(--orange); margin-bottom:14px; display:block; }
+.principle h4{ font-size:15px; font-weight:700; margin-bottom:5px; }
+.principle .native{ font-size:12px; color:var(--ink-muted); }
+
+/* ============================================================
+   05 — PARTNERS
+   ============================================================ */
+.partner-grid{ display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); }
+@media (max-width:860px){ .partner-grid{ grid-template-columns:1fr; } }
+.partner-card{ border:1px solid var(--hairline); padding:44px 40px; background:#fff; display:flex; flex-direction:column; gap:22px; }
+.partner-kicker{ font-family:var(--font-mono); font-size:10px; letter-spacing:.16em; color:var(--orange); font-weight:500; text-transform:uppercase; }
+.partner-card h3{ font-size:21px; font-weight:700; letter-spacing:-.2px; }
+.partner-by{ font-size:12px; color:var(--ink-muted); }
+.partner-card p{ font-size:14px; line-height:1.85; color:#4a4a4a; }
+[data-lang="ar"] .partner-card p{ line-height:2.1; }
+.partner-stats{ display:flex; gap:28px; padding-top:18px; border-top:1px solid var(--hairline); }
+.partner-stat b{ display:block; font-family:var(--font-display); font-size:26px; font-weight:800; color:var(--orange); letter-spacing:0; }
+.partner-stat span{ font-family:var(--font-mono); font-size:10px; color:var(--ink-muted); letter-spacing:.04em; }
+
+/* ============================================================
+   06 — CONTACT
+   ============================================================ */
+.contact{ position:relative; background:var(--ink); color:#fff; overflow:hidden; padding:108px 0; }
+.contact::before{
+  content:''; position:absolute; inset:0; opacity:.4; pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse at center,#000,transparent 72%);
+}
+.contact-inner{ position:relative; z-index:1; text-align:center; max-width:720px; margin:0 auto; }
+.contact-kicker{ font-family:var(--font-mono); font-size:11px; letter-spacing:.18em; color:rgba(217,79,30,.85); font-weight:500; margin-bottom:22px; text-transform:uppercase; }
+.contact h2{ font-family:var(--font-display); font-size:clamp(32px,5.4vw,58px); font-weight:800; letter-spacing:-.6px; line-height:1; margin-bottom:18px; text-transform:uppercase; }
+[data-lang="ar"] .contact h2{ letter-spacing:0; line-height:1.35; text-transform:none; font-family:var(--font-ar); font-size:clamp(26px,4.4vw,44px); }
+.contact-sub{ font-size:16px; color:rgba(255,255,255,.6); margin-bottom:44px; }
+.contact-actions{ display:flex; flex-wrap:wrap; justify-content:center; gap:14px; margin-bottom:56px; }
+.contact-details{ display:flex; flex-wrap:wrap; justify-content:center; gap:0; border-top:1px solid rgba(255,255,255,.12); }
+.contact-detail{ flex:1; min-width:180px; padding:24px 20px; border-inline-end:1px solid rgba(255,255,255,.12); }
+.contact-detail:last-child{ border-inline-end:none; }
+.contact-detail .k{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.16em; color:var(--white-faint); margin-bottom:8px; font-weight:500; text-transform:uppercase; }
+.contact-detail .v{ font-size:14px; font-weight:600; color:#fff; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer{ background:var(--ink); color:#fff; padding:36px 0; border-top:1px solid rgba(255,255,255,.1); }
+.footer-inner{ display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; }
+.footer-copy{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.06em; color:var(--white-faint); }
+
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#top">Skip to content</a>
+
+<!-- shared icon defs (referenced by <use> from every language block) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-hammer" viewBox="0 0 24 24"><path d="M9 4.5L6 7.5L4.5 6L3 7.5L6 10.5L7.5 9L10.5 12L4.5 18C4.1 18.4 4.1 19 4.5 19.5L5.5 20.5C5.9 20.9 6.5 20.9 6.9 20.5L15 12.4L16.5 13.9L18 12.4L14.1 8.5L15.6 7L12 3.4L10.5 4.9L9 4.5Z"/></symbol>
+<symbol id="i-ruler" viewBox="0 0 24 24"><path d="M3 3V21H8V18H10V21H12V18H14V21H16V18H18V21H21V3H3ZM19 19H17V16H15V19H13V16H11V19H9V16H7V19H5V5H19V19ZM7 7H11V11H7V7Z"/></symbol>
+<symbol id="i-blueprint" viewBox="0 0 24 24"><path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20ZM8 13H16V15H8V13ZM8 17H13V19H8V17ZM8 9H11V11H8V9Z"/></symbol>
+<symbol id="i-level" viewBox="0 0 24 24"><path d="M2 8V16H22V8H2ZM20 14H4V10H20V14ZM10 11H14V13H10V11Z"/></symbol>
+<symbol id="i-crane" viewBox="0 0 24 24"><path d="M21 3H11V5H13V7H11L3 15H5V21H7V19H9V21H11V15H13V5H15V13H17V5H19V13H21V3ZM9 17H7V15H9V17Z"/></symbol>
+<symbol id="i-wrench" viewBox="0 0 24 24"><path d="M15.5 2C13 2 11 4 11 6.5C11 7.1 11.1 7.7 11.4 8.2L2.4 17.2C2.1 17.5 2 17.9 2 18.3V21H4.7C5.1 21 5.5 20.9 5.8 20.6L14.8 11.6C15.3 11.9 15.9 12 16.5 12C19 12 21 10 21 7.5C21 7.1 20.9 6.7 20.8 6.3L18 9.1L15 6.1L17.8 3.3C17.4 2.5 16.5 2 15.5 2Z"/></symbol>
+<symbol id="i-hardhat" viewBox="0 0 24 24"><path d="M12 2C8.5 2 5.6 4.2 4.5 7.2L3 7V9H4V12H20V9H21V7L19.5 7.2C18.4 4.2 15.5 2 12 2ZM12 4C14.5 4 16.6 5.5 17.7 7.7L6.3 7.7C7.4 5.5 9.5 4 12 4ZM3 14V16H21V14H3ZM5 18V20H19V18H5Z"/></symbol>
+<symbol id="i-drill" viewBox="0 0 24 24"><path d="M20 8H4C2.9 8 2 8.9 2 10V14C2 15.1 2.9 16 4 16H6V18H10V16H20C21.1 16 22 15.1 22 14V10C22 8.9 21.1 8 20 8ZM20 14H4V10H20V14ZM16 11H18V13H16V11Z"/></symbol>
+<symbol id="i-paintbrush" viewBox="0 0 24 24"><path d="M17 8C17 8 16 9 16 11C16 12.1 16.4 13 17 13.7V20C17 21.1 16.1 22 15 22C13.9 22 13 21.1 13 20V13.7C13.6 13 14 12.1 14 11C14 9 13 8 13 8H17ZM15 2C13.3 2 12 3.3 12 5V7H18V5C18 3.3 16.7 2 15 2ZM5 2V13H8V22H10V13H13V2H5ZM7 4H11V7H7V4Z"/></symbol>
+<symbol id="i-gypsum" viewBox="0 0 24 24"><path d="M12 2L3 7V9H5V20H7V13H9V20H11V13H13V20H15V13H17V20H19V9H21V7L12 2ZM12 4.3L18 8H6L12 4.3Z"/></symbol>
+<symbol id="i-ceiling" viewBox="0 0 24 24"><path d="M3 3H21V13H3V3ZM5 5V11H19V5H5ZM1 15H23V17H1V15ZM3 19H21V21H3V19Z"/></symbol>
+<symbol id="i-metal" viewBox="0 0 24 24"><path d="M4 2H20V4L16 8V22H8V8L4 4V2ZM6 4V3.4L9.3 6.7L9.4 6.8V20H14.6V6.8L17.9 3.5V4H6Z"/></symbol>
+<symbol id="i-flooring" viewBox="0 0 24 24"><path d="M5 3H19V5H5V3ZM3 7H21V9H3V7ZM4 11H20V21H4V11ZM6 13V19H18V13H6ZM8 15H16V17H8V15Z"/></symbol>
+<symbol id="i-tile" viewBox="0 0 24 24"><path d="M3 3H11V11H3V3ZM13 3H21V11H13V3ZM3 13H11V21H3V13ZM13 13H21V21H13V13ZM5 5V9H9V5H5ZM15 5V9H19V5H15ZM5 15V19H9V15H5ZM15 15V19H19V15H15Z"/></symbol>
+<symbol id="i-marble" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20C7.6 20 4 16.4 4 12C4 7.6 7.6 4 12 4ZM12 6C8.7 6 6 8.7 6 12C6 15.3 8.7 18 12 18C15.3 18 18 15.3 18 12C18 8.7 15.3 6 12 6Z"/></symbol>
+<symbol id="i-granite" viewBox="0 0 24 24"><path d="M3 3H21V21H3V3ZM5 5V19H19V5H5ZM7 7H11V11H7V7ZM13 7H17V11H13V7ZM7 13H11V17H7V13ZM13 13H17V17H13V13Z"/></symbol>
+<symbol id="i-pavers" viewBox="0 0 24 24"><path d="M2 6H10V10H2V6ZM12 6H22V10H12V6ZM2 12H7V16H2V12ZM9 12H15V16H9V12ZM17 12H22V16H17V12ZM5 18H14V22H5V18ZM16 18H22V22H16V18Z"/></symbol>
+<symbol id="i-concrete" viewBox="0 0 24 24"><path d="M3 3H21V5H3V3ZM3 7H21V9H3V7ZM3 11H21V13H3V11ZM3 15H21V17H3V15ZM3 19H21V21H3V19Z"/></symbol>
+<symbol id="i-breaker" viewBox="0 0 24 24"><path d="M4 2H20V22H4V2ZM6 4V20H18V4H6ZM8 6H16V10H8V6ZM8 12H12V14H8V12ZM14 12H16V14H14V12ZM8 16H10V18H8V16ZM12 16H16V18H12V16Z"/></symbol>
+<symbol id="i-pipe" viewBox="0 0 24 24"><path d="M7 2H17V6H19V10H17V22H7V10H5V6H7V2ZM9 4V6H15V4H9ZM7 8V10H17V8H7ZM9 12V20H15V12H9Z"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14H11L9 22L20 10H13L15 2Z"/></symbol>
+<symbol id="i-faucet" viewBox="0 0 24 24"><path d="M21 7H7V3H5V7H3V9H5V21H7V13H10V21H12V13H15V9H21V7ZM13 11H7V9H13V11Z"/></symbol>
+<symbol id="i-bulb" viewBox="0 0 24 24"><path d="M12 2C8.7 2 6 4.7 6 8C6 10.5 7.4 12.7 9.5 13.7V16H14.5V13.7C16.6 12.7 18 10.5 18 8C18 4.7 15.3 2 12 2ZM10.5 18V20H13.5V18H10.5ZM9 21V22H15V21H9Z"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12L3.4 13.4L9 19L21 7L19.6 5.6L9 16.2Z"/></symbol>
+<symbol id="i-key" viewBox="0 0 24 24"><path d="M7 14C4.2 14 2 11.8 2 9C2 6.2 4.2 4 7 4C9.4 4 11.4 5.7 11.9 8H22V12H20V16H16V12H11.9C11.4 14.3 9.4 16 7 16C7 16 7 15 7 14ZM7 6.5C5.6 6.5 4.5 7.6 4.5 9C4.5 10.4 5.6 11.5 7 11.5C8.4 11.5 9.5 10.4 9.5 9C9.5 7.6 8.4 6.5 7 6.5Z"/></symbol>
+<symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M9 2C7.9 2 7 2.9 7 4H5C3.9 4 3 4.9 3 6V20C3 21.1 3.9 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4H17C17 2.9 16.1 2 15 2H9ZM9 4H15V6H9V4ZM6.6 12.6L10 16L17.4 8.6L16 7.2L10 13.2L8 11.2L6.6 12.6Z"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M13 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V9L13 2ZM18 20H6V4H12V10H18V20ZM8 12H16V14H8V12ZM8 16H13V18H8V16Z"/></symbol>
+</defs>
+</svg>
+
+<!-- ═══ CHROME: language switcher ═══ -->
+<div class="lang-bar" role="group" aria-label="Language">
+  <button type="button" data-lang-btn="en" aria-pressed="true">EN</button>
+  <button type="button" data-lang-btn="ar" aria-pressed="false">AR</button>
+  <button type="button" data-lang-btn="fr" aria-pressed="false">FR</button>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     ENGLISH
+     ════════════════════════════════════════════════════════ -->
+<main class="page" data-lang="en" lang="en">
+
+  <nav class="chapter-rail" aria-label="Chapter navigation">
+    <a href="#story-en" data-rail-target="story-en"><span class="dot"></span><span class="rail-label">01 Story</span></a>
+    <a href="#mission-en" data-rail-target="mission-en"><span class="dot"></span><span class="rail-label">02 Purpose</span></a>
+    <a href="#services-en" data-rail-target="services-en"><span class="dot"></span><span class="rail-label">03 Services</span></a>
+    <a href="#why-en" data-rail-target="why-en"><span class="dot"></span><span class="rail-label">04 Why DAR</span></a>
+    <a href="#partners-en" data-rail-target="partners-en"><span class="dot"></span><span class="rail-label">05 Partners</span></a>
+    <a href="#contact-en" data-rail-target="contact-en"><span class="dot"></span><span class="rail-label">06 Contact</span></a>
+  </nav>
+
+  <nav class="nav">
+    <div class="nav-inner wrap" style="padding-left:0;padding-right:0;">
+      <a href="#top" class="mark nav-mark">
+        <span class="circle" style="border-color:#111;"></span>
+        <span class="vline" style="background:#111;"></span>
+        <span class="mark-wrap">
+          <span class="word">DAR</span>
+          <span class="tag">Trading &amp; Contracting</span>
+        </span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#story-en">Story</a></li>
+        <li><a href="#services-en">Services</a></li>
+        <li><a href="#why-en">Why DAR</a></li>
+        <li><a href="#partners-en">Partners</a></li>
+      </ul>
+      <a class="nav-cta" href="tel:+96179004108">Request a Quote</a>
+      <button type="button" class="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header id="top" class="hero">
+    <div class="hero-grid-bg" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+      <div class="hero-grid">
+      <div class="hero-copy">
+      <div class="hero-eyebrow">Building &nbsp;·&nbsp; Finishing &nbsp;·&nbsp; Delivering</div>
+      <h1>Results First.<br><em>Payment Follows.</em></h1>
+      <p class="hero-sub">We deliver first. You pay for what is done — not for what is promised. Full-service construction, finishing and trades, built on verified progress instead of advance payments.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:+96179004108">Call +961 79 004 108</a>
+        <a class="btn btn-ghost" href="mailto:darcontracting2026@gmail.com">Email Us</a>
+      </div>
+      <div class="hero-stats stagger">
+        <div class="hero-stat"><b>0%</b><span>Advance Payment Demanded</span></div>
+        <div class="hero-stat"><b>15</b><span>Trades Covered</span></div>
+        <div class="hero-stat"><b>95+</b><span>Yrs Partner Expertise</span></div>
+        <div class="hero-stat"><b>3</b><span>Languages Served</span></div>
+      </div>
+      <div class="hero-strap">
+        <span><b>Beirut, Lebanon</b></span>
+        <span>darcontracting2026@gmail.com</span>
+        <span>+961 79 004 108</span>
+      </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <svg class="hero-elevation" viewBox="0 0 340 420">
+          <rect class="fill" x="70" y="130" width="200" height="230"/>
+          <path class="stroke" d="M70 360V130L170 70L270 130V360"/>
+          <line class="stroke" x1="70" y1="200" x2="270" y2="200"/>
+          <line class="stroke" x1="70" y1="270" x2="270" y2="270"/>
+          <rect class="stroke" x="98" y="150" width="34" height="40"/>
+          <rect class="stroke" x="208" y="150" width="34" height="40"/>
+          <rect class="stroke" x="98" y="220" width="34" height="40"/>
+          <rect class="stroke" x="208" y="220" width="34" height="40"/>
+          <rect class="stroke-orange" x="150" y="300" width="40" height="60"/>
+          <line class="tick" x1="70" y1="378" x2="70" y2="392"/>
+          <line class="tick" x1="270" y1="378" x2="270" y2="392"/>
+          <line class="tick" x1="70" y1="385" x2="270" y2="385"/>
+          <text class="callout" x="140" y="405">SPAN 200 UNITS</text>
+          <line class="tick" x1="288" y1="130" x2="302" y2="130"/>
+          <line class="tick" x1="288" y1="360" x2="302" y2="360"/>
+          <line class="tick" x1="295" y1="130" x2="295" y2="360"/>
+          <text class="callout" x="299" y="248" transform="rotate(90 299 248)" text-anchor="middle">RISE</text>
+        </svg>
+      </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HOW PAYMENT WORKS -->
+  <section class="process reveal" aria-labelledby="process-h-en">
+    <div class="wrap">
+      <div class="process-head">
+        <span class="process-eyebrow">How Payment Works</span>
+        <h2 id="process-h-en">Verified Progress. Not Promises.</h2>
+        <p>Every milestone is inspected before the next payment is due. No advance payment, ever.</p>
+      </div>
+      <div class="process-track stagger">
+        <div class="process-step">
+          <span class="n mono">01</span>
+          <div class="dim"></div>
+          <h3>Agreement</h3>
+          <p>Scope, drawings and price fixed in writing before ground is broken.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-doc"/></svg>Fixed in Writing</span>
+        </div>
+        <div class="process-step">
+          <span class="n mono">02</span>
+          <div class="dim"></div>
+          <h3>Structure</h3>
+          <p>Foundation, structural work, plumbing and electrical rough-in — inspected on site.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-clipboard"/></svg>Verified → Then Paid</span>
+        </div>
+        <div class="process-step">
+          <span class="n mono">03</span>
+          <div class="dim"></div>
+          <h3>Finishing</h3>
+          <p>Flooring, ceilings, painting and tiling, to the agreed specification.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-check"/></svg>Verified → Then Paid</span>
+        </div>
+        <div class="process-step">
+          <span class="n mono">04</span>
+          <div class="dim"></div>
+          <h3>Handover</h3>
+          <p>Final walkthrough, snag list closed, keys in your hand.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-key"/></svg>Keys Delivered</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01 — STORY -->
+  <section id="story-en" class="chapter on-paper reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">Who We Are</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">01/06</span>
+      </div>
+      <div class="chapter-kicker">Our Story</div>
+      <h2 style="margin-bottom:40px;">A Declaration. Not Just a Company.</h2>
+      <div class="story-grid">
+        <div>
+          <p class="story-copy">For years, project owners have incurred financial losses due to delays, noncompliance, and demands for advance payments prior to project completion. DAR was established to redefine this dynamic.</p>
+          <p class="story-copy">At DAR, clients do not pay for promises; they pay for verified results.</p>
+        </div>
+        <div class="story-callout">
+          <span class="mark"><span class="circle"></span><span class="vline"></span></span>
+          <p>DAR means <strong style="color:#fff;">home</strong> in Arabic — and home means security. Security for your investment, your vision, and your trust.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 — MISSION / VISION / VALUES -->
+  <section id="mission-en" class="chapter on-dark reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">Mission · Vision · Values</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">02/06</span>
+      </div>
+      <div class="chapter-kicker">Purpose</div>
+      <h2 style="margin-bottom:40px;color:#fff;">What We Stand For. Where We Are Going.</h2>
+
+      <div class="mv-grid stagger">
+        <div class="mv-card">
+          <div class="mv-label">Mission</div>
+          <h3>Deliver With Integrity. Every Time.</h3>
+          <p>To deliver complete construction and finishing with the precision, transparency, and professionalism that our clients deserve.</p>
+        </div>
+        <div class="mv-card">
+          <div class="mv-label">Vision</div>
+          <h3>The Most Trusted Name in Construction.</h3>
+          <p>To be among the most trusted long-term companies in the construction industry — the name every client recommends without hesitation.</p>
+        </div>
+      </div>
+
+      <div class="values-row stagger">
+        <div class="value-chip"><div class="en">Trust</div><div class="native">الثقة</div></div>
+        <div class="value-chip"><div class="en">Loyalty</div><div class="native">الولاء</div></div>
+        <div class="value-chip"><div class="en">Integrity</div><div class="native">النزاهة</div></div>
+        <div class="value-chip"><div class="en">Commitment</div><div class="native">الالتزام</div></div>
+        <div class="value-chip"><div class="en">Excellence</div><div class="native">التميّز</div></div>
+      </div>
+
+      <div class="promise">
+        <p>&ldquo;Your project, delivered exactly as agreed — on time, on budget, to the last detail.&rdquo;</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 — SERVICES -->
+  <section id="services-en" class="chapter reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">Services</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">03/06</span>
+      </div>
+      <div class="chapter-kicker">What We Do</div>
+      <h2 style="margin-bottom:40px;">Full-Service Delivery.</h2>
+
+      <div class="svc-grid stagger">
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-flooring"/></svg>
+          <h3>Flooring</h3>
+          <div class="native">الأرضيات</div>
+          <div class="svc-tags">
+            <span class="svc-tag">Epoxy</span><span class="svc-tag">Tiles</span><span class="svc-tag">Natural Stone</span><span class="svc-tag">Artificial Stone</span><span class="svc-tag">Interlocking Pavers</span><span class="svc-tag">Textured Concrete</span>
+          </div>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-paintbrush"/></svg>
+          <h3>Painting</h3>
+          <div class="native">أعمال الطلاء</div>
+          <div class="svc-tags"><span class="svc-tag">Interior Painting</span><span class="svc-tag">Exterior Painting</span></div>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-gypsum"/></svg>
+          <h3>Ceilings</h3>
+          <div class="native">أعمال الأسقف</div>
+          <div class="svc-tags"><span class="svc-tag">Gypsum Board</span><span class="svc-tag">PVC</span><span class="svc-tag">Metallic Systems</span></div>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-faucet"/></svg>
+          <h3>Plumbing</h3>
+          <div class="native">السباكة</div>
+          <p>Complete plumbing systems — drainage and water supply — installed to code and fully tested before handover.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-bulb"/></svg>
+          <h3>Electrical</h3>
+          <div class="native">الكهرباء</div>
+          <p>Full electrical installations — cabling, distribution boards, and lighting. Safe, certified, and built to last.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-blueprint"/></svg>
+          <h3>Design &amp; Project Management</h3>
+          <div class="native">الإدارة والتصميم</div>
+          <p>Architecture, planning, and end-to-end oversight — from the first drawing to the moment we hand you the keys.</p>
+        </div>
+      </div>
+
+      <div class="mgmt">
+        <div class="mgmt-main">
+          <svg class="icon"><use href="#i-blueprint"/></svg>
+          <h3>From Design to Handover.</h3>
+          <p>End-to-end oversight across every trade on site — one point of accountability from the first drawing to the last coat of paint.</p>
+        </div>
+        <div class="mgmt-trades">
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-faucet"/></svg><span>Plumbing</span></div>
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-bolt"/></svg><span>Electrical</span></div>
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-paintbrush"/></svg><span>Painting</span></div>
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-tile"/></svg><span>Tiling</span></div>
+        </div>
+      </div>
+
+      <div class="trades-label">Every Trade. Every Craft.</div>
+      <div class="trades-grid stagger">
+        <div class="trade-cell"><svg class="icon"><use href="#i-paintbrush"/></svg><div class="en">Interior Painting</div><div class="native">طلاء داخلي</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-paintbrush"/></svg><div class="en">Exterior Painting</div><div class="native">طلاء خارجي</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-gypsum"/></svg><div class="en">Gypsum Ceilings</div><div class="native">أسقف جبس بورد</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-ceiling"/></svg><div class="en">PVC Ceilings</div><div class="native">أسقف PVC</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-metal"/></svg><div class="en">Metallic Ceilings</div><div class="native">أسقف معدنية</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-flooring"/></svg><div class="en">Epoxy Flooring</div><div class="native">أرضيات إيبوكسي</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-tile"/></svg><div class="en">Tiles</div><div class="native">بلاط</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-marble"/></svg><div class="en">Marble</div><div class="native">رخام</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-granite"/></svg><div class="en">Granite</div><div class="native">غرانيت</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-pavers"/></svg><div class="en">Interlocking Pavers</div><div class="native">بلاط إنترلوك</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-concrete"/></svg><div class="en">Textured Concrete</div><div class="native">خرسانة مزخرفة</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-breaker"/></svg><div class="en">Electrical Panels</div><div class="native">لوحات كهربائية</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-pipe"/></svg><div class="en">PVC Plumbing</div><div class="native">سباكة PVC</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-bolt"/></svg><div class="en">Electrical Wiring</div><div class="native">تمديدات كهربائية</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-faucet"/></svg><div class="en">Plumbing System</div><div class="native">أنظمة سباكة</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="billboard reveal">
+    <div class="wrap">
+      <p class="billboard-text">We deliver first. <em>You pay for what is done</em> — not for what is promised.</p>
+    </div>
+  </section>
+
+  <!-- 04 — WHY DAR -->
+  <section id="why-en" class="chapter on-paper reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">Why DAR</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">04/06</span>
+      </div>
+      <div class="chapter-kicker">Our Principles</div>
+      <h2 style="margin-bottom:40px;">What We Stand By. What We Refuse.</h2>
+
+      <div class="stance-grid stagger">
+        <div class="stance stance-believe">
+          <div class="stance-label">We Believe In</div>
+          <ul>
+            <li><span class="mark-sym">＋</span>Long-term partnerships</li>
+            <li><span class="mark-sym">＋</span>Honest communication, including difficult news early</li>
+            <li><span class="mark-sym">＋</span>Full accountability — we own our outcomes</li>
+            <li><span class="mark-sym">＋</span>Reliable delivery — on budget, on schedule</li>
+            <li><span class="mark-sym">＋</span>Reasonable, competitive pricing</li>
+          </ul>
+        </div>
+        <div class="stance stance-refuse">
+          <div class="stance-label">We Refuse To</div>
+          <ul>
+            <li><span class="mark-sym">－</span>Promise timelines we cannot keep</li>
+            <li><span class="mark-sym">－</span>Demand advance payments without verified progress</li>
+            <li><span class="mark-sym">－</span>Accept substandard work from our team</li>
+            <li><span class="mark-sym">－</span>Treat a client's project as just another job</li>
+            <li><span class="mark-sym">－</span>Disappear after handover</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="height:40px;"></div>
+      <div class="principles-grid stagger">
+        <div class="principle"><span class="num mono">01</span><h4>Integrity First</h4><div class="native">النزاهة أولاً</div></div>
+        <div class="principle"><span class="num mono">02</span><h4>Client Success</h4><div class="native">نجاح العميل</div></div>
+        <div class="principle"><span class="num mono">03</span><h4>Continuous Improvement</h4><div class="native">التطوير المستمر</div></div>
+        <div class="principle"><span class="num mono">04</span><h4>Respect</h4><div class="native">الاحترام</div></div>
+        <div class="principle"><span class="num mono">05</span><h4>Responsibility</h4><div class="native">المسؤولية</div></div>
+        <div class="principle"><span class="num mono">06</span><h4>Long-Term Commitment</h4><div class="native">الالتزام طويل الأمد</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 — PARTNERS -->
+  <section id="partners-en" class="chapter reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">Our Partners</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">05/06</span>
+      </div>
+      <div class="chapter-kicker">Materials &amp; Contracting</div>
+      <h2 style="margin-bottom:40px;">Global Expertise. Local Delivery.</h2>
+
+      <div class="partner-grid stagger">
+        <div class="partner-card">
+          <div class="partner-kicker">Materials Partner</div>
+          <h3>DCP — British Building Materials</h3>
+          <div class="partner-by">Presented by Engineer Khalil Berkashi</div>
+          <p>DCP, the British building materials company, brings over 95 years of accumulated expertise in developing, manufacturing, and marketing innovative construction materials. DCP operates across North America, Europe, Africa, the Middle East, and Asia.</p>
+          <div class="partner-stats">
+            <div class="partner-stat"><b>95+</b><span>Years Expertise</span></div>
+            <div class="partner-stat"><b>14</b><span>Manufacturing Sites</span></div>
+            <div class="partner-stat"><b>30+</b><span>Countries</span></div>
+          </div>
+        </div>
+        <div class="partner-card">
+          <div class="partner-kicker">Contracting Partner</div>
+          <h3>HEK.HOUSE — Innovating Your Home</h3>
+          <div class="partner-by">Presented by Engineer Hussein Lhek</div>
+          <p>Founded in 2024, Hek House is a modern contracting company based in Lebanon, specializing in house construction, building renovation, infrastructure and road projects, in addition to trading construction materials and solar panels.</p>
+          <div class="partner-stats">
+            <div class="partner-stat"><b>2024</b><span>Founded</span></div>
+            <div class="partner-stat"><b>LB</b><span>Based in Lebanon</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 — CONTACT -->
+  <section id="contact-en" class="contact reveal">
+    <div class="wrap contact-inner">
+      <div class="contact-kicker">Let's Build Something That Lasts — 06/06</div>
+      <h2>Your Long-Term Business Partner.</h2>
+      <p class="contact-sub">Results first. Payment follows. Let's talk about your project.</p>
+      <div class="contact-actions">
+        <a class="btn btn-primary" href="tel:+96179004108">Call +961 79 004 108</a>
+        <a class="btn btn-ghost" href="mailto:darcontracting2026@gmail.com">darcontracting2026@gmail.com</a>
+      </div>
+      <div class="contact-details">
+        <div class="contact-detail"><div class="k">Phone</div><div class="v mono">+961 79 004 108</div></div>
+        <div class="contact-detail"><div class="k">Email</div><div class="v">darcontracting2026@gmail.com</div></div>
+        <div class="contact-detail"><div class="k">Location</div><div class="v">Beirut, Lebanon</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span class="mark foot-mark">
+        <span class="circle"></span><span class="vline"></span>
+        <span class="mark-wrap"><span class="word">DAR</span><span class="tag">Trading &amp; Contracting</span></span>
+      </span>
+      <div class="footer-copy">© 2025 DAR TRADING &amp; CONTRACTING · BEIRUT, LEBANON</div>
+    </div>
+  </footer>
+
+</main>
+
+<!-- ════════════════════════════════════════════════════════
+     العربية (ARABIC)
+     ════════════════════════════════════════════════════════ -->
+<main class="page" data-lang="ar" lang="ar" dir="rtl" hidden>
+
+  <nav class="chapter-rail" aria-label="التنقل بين الفصول">
+    <a href="#story-ar" data-rail-target="story-ar"><span class="dot"></span><span class="rail-label">٠١ قصتنا</span></a>
+    <a href="#mission-ar" data-rail-target="mission-ar"><span class="dot"></span><span class="rail-label">٠٢ الغاية</span></a>
+    <a href="#services-ar" data-rail-target="services-ar"><span class="dot"></span><span class="rail-label">٠٣ خدماتنا</span></a>
+    <a href="#why-ar" data-rail-target="why-ar"><span class="dot"></span><span class="rail-label">٠٤ لماذا دار</span></a>
+    <a href="#partners-ar" data-rail-target="partners-ar"><span class="dot"></span><span class="rail-label">٠٥ شركاؤنا</span></a>
+    <a href="#contact-ar" data-rail-target="contact-ar"><span class="dot"></span><span class="rail-label">٠٦ تواصل</span></a>
+  </nav>
+
+  <nav class="nav">
+    <div class="nav-inner wrap" style="padding-left:0;padding-right:0;">
+      <a href="#top-ar" class="mark nav-mark">
+        <span class="circle" style="border-color:#111;"></span>
+        <span class="vline" style="background:#111;"></span>
+        <span class="mark-wrap">
+          <span class="word">DAR</span>
+          <span class="tag" dir="ltr">Trading &amp; Contracting</span>
+        </span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#story-ar">قصتنا</a></li>
+        <li><a href="#services-ar">خدماتنا</a></li>
+        <li><a href="#why-ar">لماذا دار</a></li>
+        <li><a href="#partners-ar">شركاؤنا</a></li>
+      </ul>
+      <a class="nav-cta" href="tel:+96179004108">اطلب عرض سعر</a>
+      <button type="button" class="nav-toggle" aria-label="القائمة" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header id="top-ar" class="hero">
+    <div class="hero-grid-bg" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+      <div class="hero-grid">
+      <div class="hero-copy">
+      <div class="hero-eyebrow">البناء &nbsp;·&nbsp; التشطيب &nbsp;·&nbsp; التسليم</div>
+      <h1>النتيجة أولاً،<br><em>والدفع لاحقاً.</em></h1>
+      <p class="hero-sub">نُسلّم أولاً. أنت تدفع مقابل ما تم إنجازه — لا مقابل ما وُعِدت به. أعمال بناء وتشطيب ومهن متكاملة، مبنية على إنجاز موثّق لا على دفعات مسبقة.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:+96179004108">اتصل ٠٠٩٦١ ٧٩ ٠٠٤ ١٠٨</a>
+        <a class="btn btn-ghost" href="mailto:darcontracting2026@gmail.com">راسلنا بالبريد</a>
+      </div>
+      <div class="hero-stats stagger">
+        <div class="hero-stat"><b>٠٪</b><span>دفعة مسبقة تُطلب</span></div>
+        <div class="hero-stat"><b>١٥</b><span>مهنة نغطيها</span></div>
+        <div class="hero-stat"><b>+٩٥</b><span>سنة خبرة الشريك</span></div>
+        <div class="hero-stat"><b>٣</b><span>لغات نخدم بها</span></div>
+      </div>
+      <div class="hero-strap">
+        <span><b>بيروت، لبنان</b></span>
+        <span dir="ltr">darcontracting2026@gmail.com</span>
+        <span dir="ltr">+961 79 004 108</span>
+      </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <svg class="hero-elevation" viewBox="0 0 340 420">
+          <rect class="fill" x="70" y="130" width="200" height="230"/>
+          <path class="stroke" d="M70 360V130L170 70L270 130V360"/>
+          <line class="stroke" x1="70" y1="200" x2="270" y2="200"/>
+          <line class="stroke" x1="70" y1="270" x2="270" y2="270"/>
+          <rect class="stroke" x="98" y="150" width="34" height="40"/>
+          <rect class="stroke" x="208" y="150" width="34" height="40"/>
+          <rect class="stroke" x="98" y="220" width="34" height="40"/>
+          <rect class="stroke" x="208" y="220" width="34" height="40"/>
+          <rect class="stroke-orange" x="150" y="300" width="40" height="60"/>
+        </svg>
+      </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- كيف يعمل الدفع -->
+  <section class="process reveal" aria-labelledby="process-h-ar">
+    <div class="wrap">
+      <div class="process-head">
+        <span class="process-eyebrow">كيف يعمل الدفع</span>
+        <h2 id="process-h-ar">إنجاز موثّق، لا وعود.</h2>
+        <p>كل مرحلة تُعاين قبل استحقاق الدفعة التالية. لا دفعات مسبقة، أبداً.</p>
+      </div>
+      <div class="process-track stagger">
+        <div class="process-step">
+          <span class="n mono">01</span>
+          <div class="dim"></div>
+          <h3>الاتفاق</h3>
+          <p>تحديد النطاق والمخططات والسعر كتابياً قبل بدء العمل.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-doc"/></svg>مثبت كتابياً</span>
+        </div>
+        <div class="process-step">
+          <span class="n mono">02</span>
+          <div class="dim"></div>
+          <h3>الهيكل</h3>
+          <p>الأساسات والهيكل الإنشائي وتمديدات السباكة والكهرباء الأولية — تُعاين في الموقع.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-clipboard"/></svg>تحقّق ثم دفع</span>
+        </div>
+        <div class="process-step">
+          <span class="n mono">03</span>
+          <div class="dim"></div>
+          <h3>التشطيبات</h3>
+          <p>الأرضيات والأسقف والطلاء والبلاط، وفق المواصفات المتفق عليها.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-check"/></svg>تحقّق ثم دفع</span>
+        </div>
+        <div class="process-step">
+          <span class="n mono">04</span>
+          <div class="dim"></div>
+          <h3>التسليم</h3>
+          <p>جولة تفقّد نهائية، إغلاق قائمة الملاحظات، وتسليم المفاتيح.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-key"/></svg>تسليم المفاتيح</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01 — قصتنا -->
+  <section id="story-ar" class="chapter on-paper reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">نحن من</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">٠١/٠٦</span>
+      </div>
+      <div class="chapter-kicker">قصتنا</div>
+      <h2 style="margin-bottom:40px;">بيان، لا مجرد شركة.</h2>
+      <div class="story-grid">
+        <div>
+          <p class="story-copy">لسنوات، خسر أصحاب المشاريع أموالهم بسبب التأخير، وعدم الالتزام، وطلب الدفعات قبل إنجاز العمل. جاءت "دار" لتغيّر هذه المعادلة.</p>
+          <p class="story-copy">في "دار"، لا يدفع العميل مقابل الوعود، بل مقابل العمل المنجز؛ لأننا نؤمن أن الثقة لا تُطلب، بل تُكتسب.</p>
+        </div>
+        <div class="story-callout">
+          <span class="mark"><span class="circle"></span><span class="vline"></span></span>
+          <p>"دار" تعني <strong style="color:#fff;">المنزل</strong> أي الأمان — الأمان لاستثمارك، لرؤيتك ولثقتك.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 — الرسالة والرؤية والقيم -->
+  <section id="mission-ar" class="chapter on-dark reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">رسالتنا رؤيتنا وقيمنا</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">٠٢/٠٦</span>
+      </div>
+      <div class="chapter-kicker">الغاية</div>
+      <h2 style="margin-bottom:40px;color:#fff;">ما نؤمن به، وإلى أين نمضي.</h2>
+
+      <div class="mv-grid stagger">
+        <div class="mv-card">
+          <div class="mv-label">رسالتنا</div>
+          <h3>الالتزام بالنزاهة، في كل مرة.</h3>
+          <p>تقديم أعمال البناء والتشطيب الكاملة بالدقة والشفافية والاحترافية التي يستحقها عملاؤنا.</p>
+        </div>
+        <div class="mv-card">
+          <div class="mv-label">رؤيتنا</div>
+          <h3>الاسم الأكثر ثقةً في قطاع البناء.</h3>
+          <p>أن نكون من أكثر الشركات ثقةً على المدى البعيد في قطاع البناء — الاسم الذي يوصي به كل عميل دون تردد.</p>
+        </div>
+      </div>
+
+      <div class="values-row stagger">
+        <div class="value-chip"><div class="en">الثقة</div><div class="native">Trust</div></div>
+        <div class="value-chip"><div class="en">الولاء</div><div class="native">Loyalty</div></div>
+        <div class="value-chip"><div class="en">النزاهة</div><div class="native">Integrity</div></div>
+        <div class="value-chip"><div class="en">الالتزام</div><div class="native">Commitment</div></div>
+        <div class="value-chip"><div class="en">التميّز</div><div class="native">Excellence</div></div>
+      </div>
+
+      <div class="promise">
+        <p>"مشروعك، منجز تماماً كما اتفقنا — في الموعد المحدد، ضمن الميزانية، حتى آخر تفصيل."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 — الخدمات -->
+  <section id="services-ar" class="chapter reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">الخدمات</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">٠٣/٠٦</span>
+      </div>
+      <div class="chapter-kicker">ماذا نقدّم</div>
+      <h2 style="margin-bottom:40px;">تقديم خدمات متكاملة.</h2>
+
+      <div class="svc-grid stagger">
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-flooring"/></svg>
+          <h3>الأرضيات</h3>
+          <div class="native">Flooring</div>
+          <div class="svc-tags">
+            <span class="svc-tag">إيبوكسي</span><span class="svc-tag">بلاط</span><span class="svc-tag">حجر طبيعي</span><span class="svc-tag">حجر صناعي</span><span class="svc-tag">إنترلوك</span><span class="svc-tag">خرسانة مزخرفة</span>
+          </div>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-paintbrush"/></svg>
+          <h3>أعمال الطلاء</h3>
+          <div class="native">Painting</div>
+          <div class="svc-tags"><span class="svc-tag">طلاء داخلي</span><span class="svc-tag">طلاء خارجي</span></div>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-gypsum"/></svg>
+          <h3>أعمال الأسقف</h3>
+          <div class="native">Ceilings</div>
+          <div class="svc-tags"><span class="svc-tag">جبس بورد</span><span class="svc-tag">PVC</span><span class="svc-tag">أنظمة معدنية</span></div>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-faucet"/></svg>
+          <h3>السباكة</h3>
+          <div class="native">Plumbing</div>
+          <p>أنظمة سباكة متكاملة — صرف وتغذية مياه — منفّذة وفق المعايير ومختبرة بالكامل قبل التسليم.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-bulb"/></svg>
+          <h3>الكهرباء</h3>
+          <div class="native">Electrical</div>
+          <p>تمديدات كهربائية كاملة — أسلاك، لوحات توزيع، وإنارة. آمنة ومعتمدة ومصممة لتدوم.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-blueprint"/></svg>
+          <h3>الإدارة والتصميم</h3>
+          <div class="native">Design &amp; PM</div>
+          <p>هندسة معمارية وتخطيط وإشراف شامل — من أول رسمة حتى لحظة تسليم المفاتيح.</p>
+        </div>
+      </div>
+
+      <div class="mgmt">
+        <div class="mgmt-main">
+          <svg class="icon"><use href="#i-blueprint"/></svg>
+          <h3>من التصميم حتى التسليم.</h3>
+          <p>إشراف شامل على كل مهنة في الموقع — جهة مسؤولة واحدة من أول رسمة حتى آخر طبقة طلاء.</p>
+        </div>
+        <div class="mgmt-trades">
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-faucet"/></svg><span>السباكة</span></div>
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-bolt"/></svg><span>الكهرباء</span></div>
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-paintbrush"/></svg><span>الطلاء</span></div>
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-tile"/></svg><span>التبليط</span></div>
+        </div>
+      </div>
+
+      <div class="trades-label">كل مهنة. كل حرفة.</div>
+      <div class="trades-grid stagger">
+        <div class="trade-cell"><svg class="icon"><use href="#i-paintbrush"/></svg><div class="en">طلاء داخلي</div><div class="native">Interior Painting</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-paintbrush"/></svg><div class="en">طلاء خارجي</div><div class="native">Exterior Painting</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-gypsum"/></svg><div class="en">أسقف جبس بورد</div><div class="native">Gypsum Ceilings</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-ceiling"/></svg><div class="en">أسقف PVC</div><div class="native">PVC Ceilings</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-metal"/></svg><div class="en">أسقف معدنية</div><div class="native">Metallic Ceilings</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-flooring"/></svg><div class="en">أرضيات إيبوكسي</div><div class="native">Epoxy Flooring</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-tile"/></svg><div class="en">بلاط</div><div class="native">Tiles</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-marble"/></svg><div class="en">رخام</div><div class="native">Marble</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-granite"/></svg><div class="en">غرانيت</div><div class="native">Granite</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-pavers"/></svg><div class="en">بلاط إنترلوك</div><div class="native">Interlocking Pavers</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-concrete"/></svg><div class="en">خرسانة مزخرفة</div><div class="native">Textured Concrete</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-breaker"/></svg><div class="en">لوحات كهربائية</div><div class="native">Electrical Panels</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-pipe"/></svg><div class="en">سباكة PVC</div><div class="native">PVC Plumbing</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-bolt"/></svg><div class="en">تمديدات كهربائية</div><div class="native">Electrical Wiring</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-faucet"/></svg><div class="en">أنظمة سباكة</div><div class="native">Plumbing System</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="billboard reveal">
+    <div class="wrap">
+      <p class="billboard-text">نُسلّم أولاً. <em>أنت تدفع مقابل ما تم إنجازه</em> — لا مقابل ما وُعِدت به.</p>
+    </div>
+  </section>
+
+  <!-- 04 — لماذا دار -->
+  <section id="why-ar" class="chapter on-paper reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">لماذا دار</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">٠٤/٠٦</span>
+      </div>
+      <div class="chapter-kicker">مبادئنا</div>
+      <h2 style="margin-bottom:40px;">ما نلتزم به. وما نرفضه.</h2>
+
+      <div class="stance-grid stagger">
+        <div class="stance stance-believe">
+          <div class="stance-label">نؤمن بـ</div>
+          <ul>
+            <li><span class="mark-sym">＋</span>شراكات طويلة الأمد</li>
+            <li><span class="mark-sym">＋</span>تواصل صادق، بما في ذلك الأخبار الصعبة مبكراً</li>
+            <li><span class="mark-sym">＋</span>مسؤولية كاملة — نتحمّل نتائج عملنا</li>
+            <li><span class="mark-sym">＋</span>تسليم موثوق — ضمن الميزانية والموعد</li>
+            <li><span class="mark-sym">＋</span>تسعير عادل وتنافسي</li>
+          </ul>
+        </div>
+        <div class="stance stance-refuse">
+          <div class="stance-label">نرفض أن</div>
+          <ul>
+            <li><span class="mark-sym">－</span>نَعِد بمواعيد لا يمكننا الالتزام بها</li>
+            <li><span class="mark-sym">－</span>نطلب دفعات مسبقة دون إنجاز موثّق</li>
+            <li><span class="mark-sym">－</span>نقبل عملاً دون المستوى من فريقنا</li>
+            <li><span class="mark-sym">－</span>نتعامل مع مشروع العميل كأنه مجرد عمل عابر</li>
+            <li><span class="mark-sym">－</span>نختفي بعد التسليم</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="height:40px;"></div>
+      <div class="principles-grid stagger">
+        <div class="principle"><span class="num mono">01</span><h4>النزاهة أولاً</h4><div class="native">Integrity First</div></div>
+        <div class="principle"><span class="num mono">02</span><h4>نجاح العميل</h4><div class="native">Client Success</div></div>
+        <div class="principle"><span class="num mono">03</span><h4>التطوير المستمر</h4><div class="native">Continuous Improvement</div></div>
+        <div class="principle"><span class="num mono">04</span><h4>الاحترام</h4><div class="native">Respect</div></div>
+        <div class="principle"><span class="num mono">05</span><h4>المسؤولية</h4><div class="native">Responsibility</div></div>
+        <div class="principle"><span class="num mono">06</span><h4>الالتزام طويل الأمد</h4><div class="native">Long-Term Commitment</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 — شركاؤنا -->
+  <section id="partners-ar" class="chapter reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">شركاؤنا</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">٠٥/٠٦</span>
+      </div>
+      <div class="chapter-kicker">المواد والمقاولات</div>
+      <h2 style="margin-bottom:40px;">خبرة عالمية. تنفيذ محلي.</h2>
+
+      <div class="partner-grid stagger">
+        <div class="partner-card">
+          <div class="partner-kicker">شريك المواد</div>
+          <h3>DCP — مواد بناء بريطانية</h3>
+          <div class="partner-by">يقدّمها المهندس خليل بركاشي</div>
+          <p>تجلب DCP، الشركة البريطانية لمواد البناء، أكثر من ٩٥ عاماً من الخبرة المتراكمة في تطوير وتصنيع وتسويق مواد بناء مبتكرة، وتعمل في أميركا الشمالية وأوروبا وأفريقيا والشرق الأوسط وآسيا.</p>
+          <div class="partner-stats">
+            <div class="partner-stat"><b>+٩٥</b><span>سنة خبرة</span></div>
+            <div class="partner-stat"><b>١٤</b><span>موقع تصنيع</span></div>
+            <div class="partner-stat"><b>+٣٠</b><span>دولة</span></div>
+          </div>
+        </div>
+        <div class="partner-card">
+          <div class="partner-kicker">شريك المقاولات</div>
+          <h3>HEK.HOUSE — Innovating Your Home</h3>
+          <div class="partner-by">يقدّمها المهندس حسين لحك</div>
+          <p>تأسست عام ٢٠٢٤، وهي شركة مقاولات حديثة مقرها لبنان، متخصصة في بناء المنازل، وترميم المباني، ومشاريع البنية التحتية والطرق، إضافة إلى تجارة مواد البناء والألواح الشمسية.</p>
+          <div class="partner-stats">
+            <div class="partner-stat"><b>٢٠٢٤</b><span>التأسيس</span></div>
+            <div class="partner-stat"><b>LB</b><span>مقرها لبنان</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 — تواصل -->
+  <section id="contact-ar" class="contact reveal">
+    <div class="wrap contact-inner">
+      <div class="contact-kicker">لنبنِ ما يدوم — ٠٦/٠٦</div>
+      <h2>شريكك التجاري طويل الأمد.</h2>
+      <p class="contact-sub">النتيجة أولاً. والدفع لاحقاً. لنتحدث عن مشروعك.</p>
+      <div class="contact-actions">
+        <a class="btn btn-primary" href="tel:+96179004108">اتصل ٠٠٩٦١ ٧٩ ٠٠٤ ١٠٨</a>
+        <a class="btn btn-ghost" href="mailto:darcontracting2026@gmail.com">darcontracting2026@gmail.com</a>
+      </div>
+      <div class="contact-details">
+        <div class="contact-detail"><div class="k">الهاتف</div><div class="v mono">+961 79 004 108</div></div>
+        <div class="contact-detail"><div class="k">البريد الإلكتروني</div><div class="v">darcontracting2026@gmail.com</div></div>
+        <div class="contact-detail"><div class="k">الموقع</div><div class="v">بيروت، لبنان</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span class="mark foot-mark">
+        <span class="circle"></span><span class="vline"></span>
+        <span class="mark-wrap"><span class="word">DAR</span><span class="tag">Trading &amp; Contracting</span></span>
+      </span>
+      <div class="footer-copy">© ٢٠٢٥ دار للتجارة والمقاولات · بيروت، لبنان</div>
+    </div>
+  </footer>
+
+</main>
+
+<!-- ════════════════════════════════════════════════════════
+     FRANÇAIS
+     ════════════════════════════════════════════════════════ -->
+<main class="page" data-lang="fr" lang="fr" hidden>
+
+  <nav class="chapter-rail" aria-label="Navigation des chapitres">
+    <a href="#story-fr" data-rail-target="story-fr"><span class="dot"></span><span class="rail-label">01 Histoire</span></a>
+    <a href="#mission-fr" data-rail-target="mission-fr"><span class="dot"></span><span class="rail-label">02 Vocation</span></a>
+    <a href="#services-fr" data-rail-target="services-fr"><span class="dot"></span><span class="rail-label">03 Services</span></a>
+    <a href="#why-fr" data-rail-target="why-fr"><span class="dot"></span><span class="rail-label">04 Pourquoi DAR</span></a>
+    <a href="#partners-fr" data-rail-target="partners-fr"><span class="dot"></span><span class="rail-label">05 Partenaires</span></a>
+    <a href="#contact-fr" data-rail-target="contact-fr"><span class="dot"></span><span class="rail-label">06 Contact</span></a>
+  </nav>
+
+  <nav class="nav">
+    <div class="nav-inner wrap" style="padding-left:0;padding-right:0;">
+      <a href="#top-fr" class="mark nav-mark">
+        <span class="circle" style="border-color:#111;"></span>
+        <span class="vline" style="background:#111;"></span>
+        <span class="mark-wrap">
+          <span class="word">DAR</span>
+          <span class="tag">Trading &amp; Contracting</span>
+        </span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#story-fr">Histoire</a></li>
+        <li><a href="#services-fr">Services</a></li>
+        <li><a href="#why-fr">Pourquoi DAR</a></li>
+        <li><a href="#partners-fr">Partenaires</a></li>
+      </ul>
+      <a class="nav-cta" href="tel:+96179004108">Demander un Devis</a>
+      <button type="button" class="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header id="top-fr" class="hero">
+    <div class="hero-grid-bg" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+      <div class="hero-grid">
+      <div class="hero-copy">
+      <div class="hero-eyebrow">Construction &nbsp;·&nbsp; Finitions &nbsp;·&nbsp; Livraison</div>
+      <h1>Le Résultat d'Abord.<br><em>Le Paiement Suit.</em></h1>
+      <p class="hero-sub">Nous livrons d'abord. Vous payez pour ce qui est fait — pas pour ce qui est promis. Construction, finitions et corps de métier intégrés, fondés sur un avancement vérifié plutôt que sur des avances.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:+96179004108">Appeler +961 79 004 108</a>
+        <a class="btn btn-ghost" href="mailto:darcontracting2026@gmail.com">Nous Écrire</a>
+      </div>
+      <div class="hero-stats stagger">
+        <div class="hero-stat"><b>0%</b><span>Avance Exigée</span></div>
+        <div class="hero-stat"><b>15</b><span>Corps de Métier</span></div>
+        <div class="hero-stat"><b>95+</b><span>Ans d'Expertise Partenaire</span></div>
+        <div class="hero-stat"><b>3</b><span>Langues Servies</span></div>
+      </div>
+      <div class="hero-strap">
+        <span><b>Beyrouth, Liban</b></span>
+        <span>darcontracting2026@gmail.com</span>
+        <span>+961 79 004 108</span>
+      </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <svg class="hero-elevation" viewBox="0 0 340 420">
+          <rect class="fill" x="70" y="130" width="200" height="230"/>
+          <path class="stroke" d="M70 360V130L170 70L270 130V360"/>
+          <line class="stroke" x1="70" y1="200" x2="270" y2="200"/>
+          <line class="stroke" x1="70" y1="270" x2="270" y2="270"/>
+          <rect class="stroke" x="98" y="150" width="34" height="40"/>
+          <rect class="stroke" x="208" y="150" width="34" height="40"/>
+          <rect class="stroke" x="98" y="220" width="34" height="40"/>
+          <rect class="stroke" x="208" y="220" width="34" height="40"/>
+          <rect class="stroke-orange" x="150" y="300" width="40" height="60"/>
+          <line class="tick" x1="70" y1="378" x2="70" y2="392"/>
+          <line class="tick" x1="270" y1="378" x2="270" y2="392"/>
+          <line class="tick" x1="70" y1="385" x2="270" y2="385"/>
+          <text class="callout" x="140" y="405">PORTÉE 200 U.</text>
+        </svg>
+      </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- COMMENT FONCTIONNE LE PAIEMENT -->
+  <section class="process reveal" aria-labelledby="process-h-fr">
+    <div class="wrap">
+      <div class="process-head">
+        <span class="process-eyebrow">Comment Fonctionne le Paiement</span>
+        <h2 id="process-h-fr">Un Avancement Vérifié. Pas des Promesses.</h2>
+        <p>Chaque étape est inspectée avant que le paiement suivant ne soit dû. Aucune avance, jamais.</p>
+      </div>
+      <div class="process-track stagger">
+        <div class="process-step">
+          <span class="n mono">01</span>
+          <div class="dim"></div>
+          <h3>Accord</h3>
+          <p>Périmètre, plans et prix fixés par écrit avant le début des travaux.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-doc"/></svg>Fixé par Écrit</span>
+        </div>
+        <div class="process-step">
+          <span class="n mono">02</span>
+          <div class="dim"></div>
+          <h3>Structure</h3>
+          <p>Fondations, gros œuvre, pré-installation plomberie et électricité — inspectés sur site.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-clipboard"/></svg>Vérifié → Puis Payé</span>
+        </div>
+        <div class="process-step">
+          <span class="n mono">03</span>
+          <div class="dim"></div>
+          <h3>Finitions</h3>
+          <p>Sols, plafonds, peinture et carrelage, selon le cahier des charges convenu.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-check"/></svg>Vérifié → Puis Payé</span>
+        </div>
+        <div class="process-step">
+          <span class="n mono">04</span>
+          <div class="dim"></div>
+          <h3>Livraison</h3>
+          <p>Visite finale, liste des réserves close, clés remises.</p>
+          <span class="process-chip"><svg class="icon"><use href="#i-key"/></svg>Clés Remises</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01 — HISTOIRE -->
+  <section id="story-fr" class="chapter on-paper reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">Qui Nous Sommes</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">01/06</span>
+      </div>
+      <div class="chapter-kicker">Notre Histoire</div>
+      <h2 style="margin-bottom:40px;">Une Déclaration. Pas Seulement une Entreprise.</h2>
+      <div class="story-grid">
+        <div>
+          <p class="story-copy">Pendant des années, des maîtres d'ouvrage ont subi des pertes financières à cause des retards, du non-respect des engagements et des avances exigées avant l'achèvement des travaux. DAR a été fondée pour changer cette dynamique.</p>
+          <p class="story-copy">Chez DAR, les clients ne paient pas des promesses ; ils paient des résultats vérifiés.</p>
+        </div>
+        <div class="story-callout">
+          <span class="mark"><span class="circle"></span><span class="vline"></span></span>
+          <p>DAR signifie <strong style="color:#fff;">maison</strong> en arabe — et une maison, c'est la sécurité. La sécurité de votre investissement, de votre vision et de votre confiance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 — MISSION / VISION / VALEURS -->
+  <section id="mission-fr" class="chapter on-dark reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">Mission · Vision · Valeurs</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">02/06</span>
+      </div>
+      <div class="chapter-kicker">Vocation</div>
+      <h2 style="margin-bottom:40px;color:#fff;">Ce en Quoi Nous Croyons. Là Où Nous Allons.</h2>
+
+      <div class="mv-grid stagger">
+        <div class="mv-card">
+          <div class="mv-label">Mission</div>
+          <h3>Livrer avec Intégrité. À Chaque Fois.</h3>
+          <p>Livrer des travaux de construction et de finition complets avec la précision, la transparence et le professionnalisme que méritent nos clients.</p>
+        </div>
+        <div class="mv-card">
+          <div class="mv-label">Vision</div>
+          <h3>Le Nom le Plus Fiable de la Construction.</h3>
+          <p>Faire partie des entreprises les plus fiables et durables du secteur de la construction — le nom que chaque client recommande sans hésiter.</p>
+        </div>
+      </div>
+
+      <div class="values-row stagger">
+        <div class="value-chip"><div class="en">Confiance</div><div class="native">الثقة</div></div>
+        <div class="value-chip"><div class="en">Loyauté</div><div class="native">الولاء</div></div>
+        <div class="value-chip"><div class="en">Intégrité</div><div class="native">النزاهة</div></div>
+        <div class="value-chip"><div class="en">Engagement</div><div class="native">الالتزام</div></div>
+        <div class="value-chip"><div class="en">Excellence</div><div class="native">التميّز</div></div>
+      </div>
+
+      <div class="promise">
+        <p>&laquo; Votre projet, livré exactement comme convenu — dans les délais, dans le budget, jusqu'au dernier détail. &raquo;</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 — SERVICES -->
+  <section id="services-fr" class="chapter reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">Services</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">03/06</span>
+      </div>
+      <div class="chapter-kicker">Ce Que Nous Faisons</div>
+      <h2 style="margin-bottom:40px;">Une Prestation Complète.</h2>
+
+      <div class="svc-grid stagger">
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-flooring"/></svg>
+          <h3>Revêtements de Sol</h3>
+          <div class="native">الأرضيات</div>
+          <div class="svc-tags">
+            <span class="svc-tag">Époxy</span><span class="svc-tag">Carrelage</span><span class="svc-tag">Pierre Naturelle</span><span class="svc-tag">Pierre Artificielle</span><span class="svc-tag">Pavés Autobloquants</span><span class="svc-tag">Béton Texturé</span>
+          </div>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-paintbrush"/></svg>
+          <h3>Peinture</h3>
+          <div class="native">أعمال الطلاء</div>
+          <div class="svc-tags"><span class="svc-tag">Peinture Intérieure</span><span class="svc-tag">Peinture Extérieure</span></div>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-gypsum"/></svg>
+          <h3>Plafonds</h3>
+          <div class="native">أعمال الأسقف</div>
+          <div class="svc-tags"><span class="svc-tag">Placo</span><span class="svc-tag">PVC</span><span class="svc-tag">Systèmes Métalliques</span></div>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-faucet"/></svg>
+          <h3>Plomberie</h3>
+          <div class="native">السباكة</div>
+          <p>Systèmes de plomberie complets — évacuation et alimentation en eau — installés aux normes et entièrement testés avant livraison.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-bulb"/></svg>
+          <h3>Électricité</h3>
+          <div class="native">الكهرباء</div>
+          <p>Installations électriques complètes — câblage, tableaux de distribution et éclairage. Sûres, certifiées et durables.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="icon"><use href="#i-blueprint"/></svg>
+          <h3>Conception &amp; Gestion de Projet</h3>
+          <div class="native">الإدارة والتصميم</div>
+          <p>Architecture, planification et supervision de bout en bout — du premier plan jusqu'à la remise des clés.</p>
+        </div>
+      </div>
+
+      <div class="mgmt">
+        <div class="mgmt-main">
+          <svg class="icon"><use href="#i-blueprint"/></svg>
+          <h3>De la Conception à la Livraison.</h3>
+          <p>Supervision de bout en bout de chaque corps de métier sur site — un seul point de responsabilité, du premier plan à la dernière couche de peinture.</p>
+        </div>
+        <div class="mgmt-trades">
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-faucet"/></svg><span>Plomberie</span></div>
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-bolt"/></svg><span>Électricité</span></div>
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-paintbrush"/></svg><span>Peinture</span></div>
+          <div class="mgmt-trade"><svg class="icon"><use href="#i-tile"/></svg><span>Carrelage</span></div>
+        </div>
+      </div>
+
+      <div class="trades-label">Chaque Métier. Chaque Savoir-Faire.</div>
+      <div class="trades-grid stagger">
+        <div class="trade-cell"><svg class="icon"><use href="#i-paintbrush"/></svg><div class="en">Peinture Intérieure</div><div class="native">طلاء داخلي</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-paintbrush"/></svg><div class="en">Peinture Extérieure</div><div class="native">طلاء خارجي</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-gypsum"/></svg><div class="en">Plafonds Placo</div><div class="native">أسقف جبس بورد</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-ceiling"/></svg><div class="en">Plafonds PVC</div><div class="native">أسقف PVC</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-metal"/></svg><div class="en">Plafonds Métalliques</div><div class="native">أسقف معدنية</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-flooring"/></svg><div class="en">Sol Époxy</div><div class="native">أرضيات إيبوكسي</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-tile"/></svg><div class="en">Carrelage</div><div class="native">بلاط</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-marble"/></svg><div class="en">Marbre</div><div class="native">رخام</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-granite"/></svg><div class="en">Granit</div><div class="native">غرانيت</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-pavers"/></svg><div class="en">Pavés Autobloquants</div><div class="native">بلاط إنترلوك</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-concrete"/></svg><div class="en">Béton Texturé</div><div class="native">خرسانة مزخرفة</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-breaker"/></svg><div class="en">Tableaux Électriques</div><div class="native">لوحات كهربائية</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-pipe"/></svg><div class="en">Plomberie PVC</div><div class="native">سباكة PVC</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-bolt"/></svg><div class="en">Câblage Électrique</div><div class="native">تمديدات كهربائية</div></div>
+        <div class="trade-cell"><svg class="icon"><use href="#i-faucet"/></svg><div class="en">Réseaux de Plomberie</div><div class="native">أنظمة سباكة</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="billboard reveal">
+    <div class="wrap">
+      <p class="billboard-text">Nous livrons d'abord. <em>Vous payez pour ce qui est fait</em> — pas pour ce qui est promis.</p>
+    </div>
+  </section>
+
+  <!-- 04 — POURQUOI DAR -->
+  <section id="why-fr" class="chapter on-paper reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">Pourquoi DAR</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">04/06</span>
+      </div>
+      <div class="chapter-kicker">Nos Principes</div>
+      <h2 style="margin-bottom:40px;">Ce Que Nous Défendons. Ce Que Nous Refusons.</h2>
+
+      <div class="stance-grid stagger">
+        <div class="stance stance-believe">
+          <div class="stance-label">Nous Croyons En</div>
+          <ul>
+            <li><span class="mark-sym">＋</span>Des partenariats durables</li>
+            <li><span class="mark-sym">＋</span>Une communication honnête, y compris les mauvaises nouvelles, tôt</li>
+            <li><span class="mark-sym">＋</span>Une responsabilité pleine et entière</li>
+            <li><span class="mark-sym">＋</span>Une livraison fiable — dans le budget, dans les délais</li>
+            <li><span class="mark-sym">＋</span>Des tarifs justes et compétitifs</li>
+          </ul>
+        </div>
+        <div class="stance stance-refuse">
+          <div class="stance-label">Nous Refusons De</div>
+          <ul>
+            <li><span class="mark-sym">－</span>Promettre des délais que nous ne pouvons pas tenir</li>
+            <li><span class="mark-sym">－</span>Exiger des avances sans avancement vérifié</li>
+            <li><span class="mark-sym">－</span>Accepter un travail en dessous des normes de notre équipe</li>
+            <li><span class="mark-sym">－</span>Traiter le projet d'un client comme un chantier parmi d'autres</li>
+            <li><span class="mark-sym">－</span>Disparaître après la livraison</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="height:40px;"></div>
+      <div class="principles-grid stagger">
+        <div class="principle"><span class="num mono">01</span><h4>L'Intégrité Avant Tout</h4><div class="native">النزاهة أولاً</div></div>
+        <div class="principle"><span class="num mono">02</span><h4>La Réussite du Client</h4><div class="native">نجاح العميل</div></div>
+        <div class="principle"><span class="num mono">03</span><h4>Amélioration Continue</h4><div class="native">التطوير المستمر</div></div>
+        <div class="principle"><span class="num mono">04</span><h4>Respect</h4><div class="native">الاحترام</div></div>
+        <div class="principle"><span class="num mono">05</span><h4>Responsabilité</h4><div class="native">المسؤولية</div></div>
+        <div class="principle"><span class="num mono">06</span><h4>Engagement à Long Terme</h4><div class="native">الالتزام طويل الأمد</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 — PARTENAIRES -->
+  <section id="partners-fr" class="chapter reveal">
+    <div class="wrap">
+      <div class="chapter-head">
+        <span class="chapter-eyebrow">Nos Partenaires</span>
+        <div class="chapter-rule"></div>
+        <span class="chapter-num mono">05/06</span>
+      </div>
+      <div class="chapter-kicker">Matériaux &amp; Entreprise</div>
+      <h2 style="margin-bottom:40px;">Une Expertise Mondiale. Une Livraison Locale.</h2>
+
+      <div class="partner-grid stagger">
+        <div class="partner-card">
+          <div class="partner-kicker">Partenaire Matériaux</div>
+          <h3>DCP — Matériaux de Construction Britanniques</h3>
+          <div class="partner-by">Présenté par l'ingénieur Khalil Berkashi</div>
+          <p>DCP, l'entreprise britannique de matériaux de construction, apporte plus de 95 ans d'expertise dans le développement, la fabrication et la commercialisation de matériaux de construction innovants, en Amérique du Nord, en Europe, en Afrique, au Moyen-Orient et en Asie.</p>
+          <div class="partner-stats">
+            <div class="partner-stat"><b>95+</b><span>Ans d'Expertise</span></div>
+            <div class="partner-stat"><b>14</b><span>Sites de Fabrication</span></div>
+            <div class="partner-stat"><b>30+</b><span>Pays</span></div>
+          </div>
+        </div>
+        <div class="partner-card">
+          <div class="partner-kicker">Partenaire Entrepreneur</div>
+          <h3>HEK.HOUSE — Innovating Your Home</h3>
+          <div class="partner-by">Présenté par l'ingénieur Hussein Lhek</div>
+          <p>Fondée en 2024, Hek House est une entreprise de construction moderne basée au Liban, spécialisée dans la construction de maisons, la rénovation de bâtiments, les infrastructures et les projets routiers, ainsi que le commerce de matériaux de construction et de panneaux solaires.</p>
+          <div class="partner-stats">
+            <div class="partner-stat"><b>2024</b><span>Fondée</span></div>
+            <div class="partner-stat"><b>LB</b><span>Basée au Liban</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 — CONTACT -->
+  <section id="contact-fr" class="contact reveal">
+    <div class="wrap contact-inner">
+      <div class="contact-kicker">Construisons Ensemble — 06/06</div>
+      <h2>Votre Partenaire Commercial à Long Terme.</h2>
+      <p class="contact-sub">Le résultat d'abord. Le paiement suit. Parlons de votre projet.</p>
+      <div class="contact-actions">
+        <a class="btn btn-primary" href="tel:+96179004108">Appeler +961 79 004 108</a>
+        <a class="btn btn-ghost" href="mailto:darcontracting2026@gmail.com">darcontracting2026@gmail.com</a>
+      </div>
+      <div class="contact-details">
+        <div class="contact-detail"><div class="k">Tél.</div><div class="v mono">+961 79 004 108</div></div>
+        <div class="contact-detail"><div class="k">E-mail</div><div class="v">darcontracting2026@gmail.com</div></div>
+        <div class="contact-detail"><div class="k">Lieu</div><div class="v">Beyrouth, Liban</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span class="mark foot-mark">
+        <span class="circle"></span><span class="vline"></span>
+        <span class="mark-wrap"><span class="word">DAR</span><span class="tag">Trading &amp; Contracting</span></span>
+      </span>
+      <div class="footer-copy">© 2025 DAR TRADING &amp; CONTRACTING · BEYROUTH, LIBAN</div>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  var pages = document.querySelectorAll('.page');
+  var buttons = document.querySelectorAll('[data-lang-btn]');
+  var STORAGE_KEY = 'dar-lang';
+
+  function setLang(lang){
+    pages.forEach(function(p){
+      if(p.getAttribute('data-lang') === lang){ p.hidden = false; }
+      else{ p.hidden = true; }
+    });
+    buttons.forEach(function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-lang-btn') === lang ? 'true' : 'false');
+    });
+    document.documentElement.setAttribute('lang', lang);
+    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    try{ localStorage.setItem(STORAGE_KEY, lang); }catch(e){}
+  }
+
+  buttons.forEach(function(b){
+    b.addEventListener('click', function(){ setLang(b.getAttribute('data-lang-btn')); });
+  });
+
+  var saved = null;
+  try{ saved = localStorage.getItem(STORAGE_KEY); }catch(e){}
+  setLang(saved || 'en');
+
+  document.querySelectorAll('.nav-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var links = btn.closest('.nav-inner').querySelector('.nav-links');
+      var open = links.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  });
+  document.querySelectorAll('.nav-links a').forEach(function(a){
+    a.addEventListener('click', function(){
+      var links = a.closest('.nav-links');
+      links.classList.remove('open');
+      links.closest('.nav-inner').querySelector('.nav-toggle').setAttribute('aria-expanded','false');
+    });
+  });
+
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){ entry.target.classList.add('in'); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal, .stagger').forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal, .stagger').forEach(function(el){ el.classList.add('in'); });
+  }
+
+  var railLinks = document.querySelectorAll('.chapter-rail a');
+  if('IntersectionObserver' in window && railLinks.length){
+    var railMap = {};
+    railLinks.forEach(function(a){
+      var id = a.getAttribute('data-rail-target');
+      var el = document.getElementById(id);
+      if(el){ railMap[id] = a; }
+    });
+    var railIO = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(!entry.isIntersecting) return;
+        var link = railMap[entry.target.id];
+        if(!link) return;
+        document.querySelectorAll('.chapter-rail a.active').forEach(function(x){ x.classList.remove('active'); });
+        link.classList.add('active');
+      });
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+    Object.keys(railMap).forEach(function(id){ railIO.observe(document.getElementById(id)); });
+  }
+})();
+</script>
+
+</body>
+</html>
